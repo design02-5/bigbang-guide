@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>歌詞建置工具（內部用）</title>
+<style>
+  :root {
+    --bg: #f4f2ec; --panel: #ffffff; --border: #ddd8cc; --text: #17140f;
+    --muted: #6c675c; --accent: #17140f; --accent-ink: #f4f2ec;
+    --danger: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Noto Sans TC", "Microsoft JhengHei", -apple-system, sans-serif;
+    background: var(--bg); color: var(--text); padding: 24px;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 20px; line-height: 1.7; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; margin-bottom: 18px;
+  }
+  .panel h2 { font-size: 14px; margin: 0 0 12px; letter-spacing: .04em; }
+  .row-inline { display: flex; flex-wrap: wrap; gap: 10px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; color: var(--muted); }
+  .field input, .field select, textarea {
+    font: inherit; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; color: var(--text); min-width: 0;
+  }
+  textarea { width: 100%; resize: vertical; font-size: 13px; line-height: 1.6; }
+  button {
+    font: inherit; cursor: pointer; border: 1px solid var(--border); background: #fff;
+    color: var(--text); padding: 8px 14px; border-radius: 999px; font-size: 13px;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+  button.danger { color: var(--danger); border-color: var(--danger); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+
+  #yt-player-wrap { position: relative; width: 100%; max-width: 640px; padding-top: 36%; background: #111; border-radius: 8px; overflow: hidden; margin-top: 10px; }
+  #yt-player-wrap.empty::after {
+    content: "先在上面填 YouTube 影片 ID"; position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center; color: #aaa; font-size: 13px;
+  }
+  #yt-player { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .mark-bar { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .mark-bar .current-time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 6px 6px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td input[type="text"], td input[type="number"] { width: 100%; }
+  td.col-time { width: 90px; }
+  td.col-chant { width: 190px; }
+  td.col-del { width: 40px; text-align: center; }
+
+  .chant-btns { display: flex; gap: 3px; flex-wrap: wrap; }
+  .chant-btns button { padding: 3px 8px; font-size: 11px; }
+  .chant-btns button[data-active="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  #export-output { width: 100%; height: 260px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .count-badge { font-size: 12px; color: var(--muted); }
+  .copy-msg { font-size: 12px; color: green; margin-left: 8px; }
+  .gh-status { font-size: 12px; padding: 6px 10px; border-radius: 6px; display: inline-block; margin-top: 8px; }
+  .gh-status.on { background: #e6f4ea; color: #1e7a34; }
+  .gh-status.off { background: #f4ece6; color: #8a5a2a; }
+  .err-msg { font-size: 12px; color: var(--danger); margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<h1>歌詞建置工具（內部用，不是給歌迷看的頁面）</h1>
+<p class="hint">
+  用途：把一首歌的逐句歌詞、YouTube 時間點、應援類型整理好，一鍵產生可以直接貼進
+  <code>js/data.js</code> 的 <code>SONGS</code> 陣列的程式碼。這支檔案跟主網站完全獨立，
+  不會影響正式網站任何資料。<br>
+  ⚠️ 跟主站一樣，這支工具裡也有內嵌 YouTube 影片，<b>不能直接雙擊這個 html 檔案開</b>（會撞到
+  YouTube 的 file:// 限制）。在這台電腦用，先雙擊主網站資料夾裡的 <code>啟動本機預覽.bat</code>，
+  再從瀏覽器網址列輸入 <code>http://localhost:8888/tools/lyrics-builder.html</code> 開啟；
+  上架到 GitHub Pages 之後，也可以直接開正式網址下的這個頁面
+  （例如 <code>https://你的帳號.github.io/repo名/tools/lyrics-builder.html</code>），
+  在下面設定一次 GitHub 存檔（見「🌐 GitHub 存檔設定」），手機/平板/電腦到處都能編輯、直接存檔。<br>
+  <b>新增一首新歌</b>：① 填歌曲基本資料 → ② 邊播影片邊按「用目前時間新增一句」抓時間點 →
+  ③ 把準備好的歌詞文字貼進三個欄位、按「套用文字」自動填進每一列 → ④ 微調應援類型 →
+  ⑤ 產生程式碼、按「儲存回 data.js」。<br>
+  <b>修改已經做好的歌</b>：最上面「⓪ 選擇要修改的歌」下拉選單直接選那首歌，會自動帶入所有欄位，
+  改完一樣走④⑤，按「儲存回 data.js」就會直接改到本機的 data.js 檔案，不用自己複製貼上。
+</p>
+
+<div class="panel">
+  <h2>🌐 GitHub 存檔設定（選用：設定後手機／平板／電腦到處都能存檔，不用連這台電腦）</h2>
+  <p class="hint" style="margin-top:-4px">
+    設定好之後，讀取歌單、儲存歌詞都會改成直接讀寫 GitHub 上的 <code>js/data.js</code>（等於直接 commit），
+    不吃這台電腦的本機伺服器。<b>沒設定就照舊用本機伺服器</b>，兩種模式自動切換，不衝突。<br>
+    Token 只會存在「這個瀏覽器」的裝置裡（localStorage），不會上傳到任何地方，也不會存進 data.js。
+    到 <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>
+    申請一組 <b>classic token</b>，勾選 <code>repo</code> 權限即可；每台要編輯的裝置（手機/平板/電腦）都要各自貼一次。
+  </p>
+  <div class="row-inline">
+    <div class="field"><label>GitHub 帳號／組織</label><input type="text" id="gh-owner" placeholder="例：tactics13-com"></div>
+    <div class="field"><label>Repo 名稱</label><input type="text" id="gh-repo" placeholder="例：bigbang-guide"></div>
+    <div class="field"><label>分支</label><input type="text" id="gh-branch" placeholder="main" value="main"></div>
+    <div class="field" style="flex:1;min-width:260px"><label>Personal Access Token</label><input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx"></div>
+  </div>
+  <div class="toolbar">
+    <button class="primary" id="btn-gh-save">儲存設定到這台裝置</button>
+    <button id="btn-gh-test">測試連線</button>
+    <button class="danger" id="btn-gh-clear">清除這台裝置的設定</button>
+  </div>
+  <div id="gh-status" class="gh-status off">目前：本機伺服器模式（未設定 GitHub）</div>
+</div>
+
+<div class="panel">
+  <h2>⓪ 選擇要修改的歌（修改已完成的歌時用，新歌跳過這步）</h2>
+  <div class="row-inline">
+    <div class="field" style="min-width:300px">
+      <label>從 data.js 目前的歌單選一首，會自動帶入下面所有欄位</label>
+      <select id="song-select"><option value="">-- 選擇歌曲 --</option></select>
+    </div>
+  </div>
+  <p class="hint" id="song-select-hint" style="margin-top:8px"></p>
+  <details style="margin-top:4px">
+    <summary style="cursor:pointer;font-size:12px;color:var(--muted)">選單讀不到資料時，用手動貼上程式碼匯入（備用）</summary>
+    <div class="field" style="margin-top:10px"><textarea id="import-input" rows="6" placeholder="貼上完整一首歌的程式碼，例如：
+  {
+    id: &quot;fantastic-baby&quot;,
+    order: 1,
+    ...
+    lyrics: [ ... ],
+  },"></textarea></div>
+    <div class="toolbar">
+      <button id="btn-import">匯入</button>
+      <span class="count-badge" id="import-msg"></span>
+    </div>
+  </details>
+</div>
+
+<div class="panel">
+  <h2>① 歌曲基本資料</h2>
+  <div class="row-inline">
+    <div class="field"><label>id（英文/羅馬拼音，網址用，例：bang-bang-bang）</label><input type="text" id="f-id" placeholder="song-id"></div>
+    <div class="field"><label>order（在歌單裡第幾首）</label><input type="number" id="f-order" value="1" min="1"></div>
+    <div class="field"><label>title（中文/慣用曲名）</label><input type="text" id="f-title" placeholder="曲名"></div>
+    <div class="field"><label>titleOriginal（原文曲名）</label><input type="text" id="f-title-original" placeholder="원곡명"></div>
+    <div class="field"><label>YouTube 影片 ID</label><input type="text" id="f-yt" placeholder="例：dQw4w9WgXcQ"></div>
+    <div class="field" style="flex:1;min-width:220px"><label>分類（自訂名稱，多個用逗號分隔，例：舞曲,安可曲）</label><input type="text" id="f-categories" placeholder="例：舞曲,安可曲"></div>
+  </div>
+  <div id="yt-player-wrap" class="empty"><div id="yt-player"></div></div>
+  <div class="mark-bar">
+    <button class="primary" id="btn-load-video">載入 / 更新影片</button>
+    <span class="current-time" id="current-time-readout">目前播放時間：--</span>
+    <button id="btn-add-at-time">＋ 用目前時間新增一句</button>
+    <button id="btn-add-blank">＋ 新增空白列（時間 0）</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>② 批次貼上文字（選用，跟目前列表逐句對應）</h2>
+  <p class="hint" style="margin-top:-4px">
+    三個欄位都用「一行一句」貼上，行數必須跟下面表格目前的列數一樣，按「套用文字」才會照順序一句一句填進去。
+  </p>
+  <div class="row-inline">
+    <div class="field" style="flex:1;min-width:200px"><label>原文（每行一句）</label><textarea id="bulk-original" rows="6"></textarea></div>
+    <div class="field" style="flex:1;min-width:200px"><label>羅馬拼音（每行一句）</label><textarea id="bulk-romaji" rows="6"></textarea></div>
+    <div class="field" style="flex:1;min-width:200px"><label>中文翻譯（每行一句）</label><textarea id="bulk-zh" rows="6"></textarea></div>
+  </div>
+  <div class="toolbar">
+    <button id="btn-apply-bulk">套用文字到目前列表</button>
+    <span class="count-badge" id="bulk-count-hint"></span>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>③ 逐句列表</h2>
+  <div class="toolbar">
+    <button id="btn-sort-time">依時間排序</button>
+    <span class="count-badge" id="row-count-hint"></span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px">#</th>
+        <th class="col-time">時間(秒)</th>
+        <th>原文</th>
+        <th>羅馬拼音</th>
+        <th>中文翻譯</th>
+        <th class="col-chant">應援類型</th>
+        <th class="col-del"></th>
+      </tr>
+    </thead>
+    <tbody id="rows-body"></tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>④ 產生程式碼</h2>
+  <div class="toolbar">
+    <button class="primary" id="btn-generate">產生程式碼</button>
+    <button id="btn-copy">複製到剪貼簿</button>
+    <button id="btn-save">儲存回 data.js</button>
+    <span class="copy-msg" id="copy-msg"></span>
+  </div>
+  <p class="hint" style="margin-top:-4px">「儲存回 data.js」會直接改本機的 data.js 檔案（先按上面「產生程式碼」才有內容可以存），存檔前會自動備份一份 <code>data.js.bak</code>。存完記得照 README 用 TortoiseGit commit + push 才會真的發布到網站上。</p>
+  <textarea id="export-output" readonly placeholder="按「產生程式碼」後，這裡會出現可以直接貼進 data.js 的內容"></textarea>
+</div>
+
+<script>
+  const CHANT_OPTIONS = [
+    { key: null, label: "無" },
+    { key: "call", label: "大合唱" },
+    { key: "cheer", label: "應援詞" },
+    { key: "clap", label: "拍手" },
+    { key: "wave", label: "揮手" },
+    { key: "jump", label: "跳躍" },
+    { key: "twirl", label: "轉臂" },
+  ];
+
+  let rows = [];
+  let ytPlayer = null;
+  let rowSeq = 0;
+
+  /* ===== GitHub 存檔模式 ===== */
+  const GH_STORAGE_KEY = "bg_cosmos_lyrics_gh_settings";
+  const DATA_JS_PATH = "js/data.js";
+  let ghLastSha = null; // 記住最後一次從 GitHub 讀到的 sha，存檔時當作起點（存檔前會重新抓最新的，避免衝突）
+
+  function ghSettings() {
+    try {
+      const raw = localStorage.getItem(GH_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function ghEnabled() {
+    const s = ghSettings();
+    return !!(s && s.owner && s.repo && s.token);
+  }
+  function ghApiBase() {
+    const s = ghSettings();
+    return `https://api.github.com/repos/${encodeURIComponent(s.owner)}/${encodeURIComponent(s.repo)}`;
+  }
+  function ghHeaders() {
+    const s = ghSettings();
+    return {
+      "Authorization": "Bearer " + s.token,
+      "Accept": "application/vnd.github+json",
+    };
+  }
+  function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = "";
+    bytes.forEach((b) => (binary += String.fromCharCode(b)));
+    return btoa(binary);
+  }
+  function base64ToUtf8(b64) {
+    const binary = atob(b64.replace(/\n/g, ""));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  async function ghGetDataJs() {
+    const s = ghSettings();
+    const url = `${ghApiBase()}/contents/${DATA_JS_PATH}?ref=${encodeURIComponent(s.branch || "main")}&t=${Date.now()}`;
+    const res = await fetch(url, { headers: ghHeaders() });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(`讀取失敗（HTTP ${res.status}）：${body.message || "請檢查帳號/repo/分支/Token"}`);
+    }
+    const data = await res.json();
+    ghLastSha = data.sha;
+    return { text: base64ToUtf8(data.content), sha: data.sha };
+  }
+
+  async function ghPutDataJs(newText, sha, message) {
+    const s = ghSettings();
+    const url = `${ghApiBase()}/contents/${DATA_JS_PATH}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { ...ghHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: message || "更新歌詞（lyrics-builder）",
+        content: utf8ToBase64(newText),
+        sha,
+        branch: s.branch || "main",
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 409) throw new Error("存檔衝突：data.js 在別的裝置剛被改過，請重新整理頁面再試一次。");
+      throw new Error(`存檔失敗（HTTP ${res.status}）：${body.message || "請檢查 Token 權限"}`);
+    }
+    return res.json();
+  }
+
+  /* 把 Python 版 find_song_blocks / save_song 的邏輯搬到 JS，兩邊（本機伺服器／GitHub API）共用同一套 */
+  function findArraySpan(text, marker) {
+    const start = text.indexOf(marker);
+    if (start === -1) throw new Error(`data.js 裡找不到「${marker}」，格式可能被改過`);
+    const bracketStart = start + marker.length - 1;
+    let depth = 0;
+    let i = bracketStart;
+    while (i < text.length) {
+      const c = text[i];
+      if (c === "[") depth++;
+      else if (c === "]") { depth--; if (depth === 0) return [bracketStart, i]; }
+      i++;
+    }
+    throw new Error("找不到 SONGS 陣列的結尾");
+  }
+  function findSongBlocks(text) {
+    const [arrStart, arrEnd] = findArraySpan(text, "const SONGS = [");
+    const blocks = [];
+    let i = arrStart + 1;
+    while (i < arrEnd) {
+      while (i < arrEnd && " \t\r\n,".includes(text[i])) i++;
+      if (i >= arrEnd) break;
+      if (text[i] !== "{") { i++; continue; }
+      const objStart = i;
+      let depth = 0, inStr = null, j = i;
+      while (j < arrEnd) {
+        const c = text[j];
+        if (inStr) {
+          if (c === "\\") { j += 2; continue; }
+          if (c === inStr) inStr = null;
+        } else {
+          if (c === '"' || c === "'" || c === "`") inStr = c;
+          else if (c === "{") depth++;
+          else if (c === "}") { depth--; if (depth === 0) break; }
+        }
+        j++;
+      }
+      const objEnd = j + 1;
+      const blockText = text.slice(objStart, objEnd);
+      const idM = blockText.match(/id\s*:\s*"([^"]*)"/);
+      const titleM = blockText.match(/title\s*:\s*"([^"]*)"/);
+      const orderM = blockText.match(/order\s*:\s*(\d+)/);
+      blocks.push({
+        id: idM ? idM[1] : null,
+        title: titleM ? titleM[1] : "",
+        order: orderM ? parseInt(orderM[1], 10) : null,
+        start: objStart,
+        end: objEnd,
+        text: blockText,
+      });
+      i = objEnd;
+    }
+    return { blocks, arrStart, arrEnd };
+  }
+  function buildNewDataJs(text, songId, newCode) {
+    let code = newCode.trim();
+    if (code.endsWith(",")) code = code.slice(0, -1);
+    const { blocks, arrEnd } = findSongBlocks(text);
+    const match = blocks.find((b) => b.id === songId);
+    if (match) {
+      return text.slice(0, match.start) + code + text.slice(match.end);
+    }
+    let prefix = text.slice(0, arrEnd);
+    const stripped = prefix.replace(/\s+$/, "");
+    if (!stripped.endsWith("[") && !stripped.endsWith(",")) prefix = stripped + ",\n";
+    return prefix + "  " + code + ",\n" + text.slice(arrEnd);
+  }
+
+  function refreshGhStatusUI() {
+    const el = document.getElementById("gh-status");
+    if (ghEnabled()) {
+      const s = ghSettings();
+      el.className = "gh-status on";
+      el.textContent = `目前：GitHub 模式已啟用（${s.owner}/${s.repo}@${s.branch || "main"}），存檔會直接 commit 到 GitHub`;
+    } else {
+      el.className = "gh-status off";
+      el.textContent = "目前：本機伺服器模式（未設定 GitHub，存檔只會寫到這台電腦）";
+    }
+  }
+
+  document.getElementById("btn-gh-save").addEventListener("click", () => {
+    const owner = document.getElementById("gh-owner").value.trim();
+    const repo = document.getElementById("gh-repo").value.trim();
+    const branch = document.getElementById("gh-branch").value.trim() || "main";
+    const token = document.getElementById("gh-token").value.trim();
+    if (!owner || !repo || !token) { alert("帳號、Repo 名稱、Token 都要填。"); return; }
+    localStorage.setItem(GH_STORAGE_KEY, JSON.stringify({ owner, repo, branch, token }));
+    refreshGhStatusUI();
+    loadSongList();
+  });
+
+  document.getElementById("btn-gh-clear").addEventListener("click", () => {
+    localStorage.removeItem(GH_STORAGE_KEY);
+    document.getElementById("gh-owner").value = "";
+    document.getElementById("gh-repo").value = "";
+    document.getElementById("gh-branch").value = "main";
+    document.getElementById("gh-token").value = "";
+    refreshGhStatusUI();
+    loadSongList();
+  });
+
+  document.getElementById("btn-gh-test").addEventListener("click", async () => {
+    const owner = document.getElementById("gh-owner").value.trim();
+    const repo = document.getElementById("gh-repo").value.trim();
+    const branch = document.getElementById("gh-branch").value.trim() || "main";
+    const token = document.getElementById("gh-token").value.trim();
+    if (!owner || !repo || !token) { alert("帳號、Repo 名稱、Token 都要填才能測試。"); return; }
+    localStorage.setItem(GH_STORAGE_KEY, JSON.stringify({ owner, repo, branch, token }));
+    try {
+      const { text } = await ghGetDataJs();
+      const { blocks } = findSongBlocks(text);
+      alert(`連線成功！讀到 ${blocks.length} 首歌。`);
+      refreshGhStatusUI();
+      loadSongList();
+    } catch (e) {
+      alert("連線失敗：" + e.message);
+    }
+  });
+
+  (function initGhFieldsFromStorage() {
+    const s = ghSettings();
+    if (s) {
+      document.getElementById("gh-owner").value = s.owner || "";
+      document.getElementById("gh-repo").value = s.repo || "";
+      document.getElementById("gh-branch").value = s.branch || "main";
+      document.getElementById("gh-token").value = s.token || "";
+    }
+    refreshGhStatusUI();
+  })();
+
+  function newRow(time) {
+    rowSeq += 1;
+    return { key: rowSeq, time: Math.round(time * 10) / 10, original: "", romaji: "", zh: "", chant: null };
+  }
+
+  function renderRows() {
+    const tbody = document.getElementById("rows-body");
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr data-key="${r.key}">
+        <td>${i + 1}</td>
+        <td class="col-time"><input type="number" step="0.1" value="${r.time}" data-field="time"></td>
+        <td><input type="text" value="${escapeAttr(r.original)}" data-field="original"></td>
+        <td><input type="text" value="${escapeAttr(r.romaji)}" data-field="romaji"></td>
+        <td><input type="text" value="${escapeAttr(r.zh)}" data-field="zh"></td>
+        <td class="col-chant">
+          <div class="chant-btns">
+            ${CHANT_OPTIONS.map(o => `<button type="button" data-chant="${o.key ?? ""}" data-active="${r.chant === o.key}">${o.label}</button>`).join("")}
+          </div>
+        </td>
+        <td class="col-del"><button type="button" class="danger" data-del="1">✕</button></td>
+      </tr>
+    `).join("");
+    document.getElementById("row-count-hint").textContent = `共 ${rows.length} 句`;
+  }
+
+  function escapeAttr(s) {
+    return String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
+
+  document.getElementById("rows-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+    const key = Number(tr.dataset.key);
+    const row = rows.find((r) => r.key === key);
+    if (!row) return;
+    const field = e.target.dataset.field;
+    if (!field) return;
+    row[field] = field === "time" ? parseFloat(e.target.value) || 0 : e.target.value;
+  });
+
+  document.getElementById("rows-body").addEventListener("click", (e) => {
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+    const key = Number(tr.dataset.key);
+    if (e.target.dataset.del) {
+      rows = rows.filter((r) => r.key !== key);
+      renderRows();
+      return;
+    }
+    if (e.target.dataset.chant !== undefined) {
+      const row = rows.find((r) => r.key === key);
+      const val = e.target.dataset.chant || null;
+      row.chant = row.chant === val ? null : val;
+      renderRows();
+    }
+  });
+
+  document.getElementById("btn-sort-time").addEventListener("click", () => {
+    rows.sort((a, b) => a.time - b.time);
+    renderRows();
+  });
+
+  document.getElementById("btn-add-blank").addEventListener("click", () => {
+    rows.push(newRow(0));
+    renderRows();
+  });
+
+  document.getElementById("btn-add-at-time").addEventListener("click", () => {
+    const t = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+    rows.push(newRow(t));
+    renderRows();
+  });
+
+  document.getElementById("btn-apply-bulk").addEventListener("click", () => {
+    const lineCount = document.getElementById("bulk-original").value.split("\n").length;
+    if (rows.length === 0) { alert("目前列表是空的，請先用「新增一句」建立列數。"); return; }
+    if (lineCount !== rows.length) {
+      alert(`行數對不上：原文欄位 ${lineCount} 行，目前列表 ${rows.length} 列，請調整後再套用。`);
+      return;
+    }
+    const origLines = document.getElementById("bulk-original").value.split("\n");
+    const romajiLines = document.getElementById("bulk-romaji").value.split("\n");
+    const zhLines = document.getElementById("bulk-zh").value.split("\n");
+    rows.forEach((r, i) => {
+      if (origLines[i] !== undefined) r.original = origLines[i];
+      if (romajiLines[i] !== undefined) r.romaji = romajiLines[i];
+      if (zhLines[i] !== undefined) r.zh = zhLines[i];
+    });
+    renderRows();
+  });
+
+  document.getElementById("bulk-original").addEventListener("input", updateBulkHint);
+  function updateBulkHint() {
+    const lineCount = document.getElementById("bulk-original").value.split("\n").length;
+    document.getElementById("bulk-count-hint").textContent = `原文欄位目前 ${lineCount} 行，列表目前 ${rows.length} 列`;
+  }
+
+  /* ===== 匯入現有歌曲（下拉選單 or 手動貼上，共用同一套邏輯） ===== */
+  function importSongFromCode(raw, msgEl) {
+    let obj;
+    try {
+      let t = raw.trim();
+      if (t.endsWith(",")) t = t.slice(0, -1); // 去掉從陣列複製時常帶的結尾逗號
+      obj = new Function("return (" + t + ")")();
+    } catch (e) {
+      alert("讀不懂這段程式碼，請確認是完整一首歌從 { 到 }, 的內容。\n\n技術訊息：" + e.message);
+      return;
+    }
+    if (!obj || !Array.isArray(obj.lyrics)) {
+      alert("這段內容看起來不是一首歌的資料（沒有找到 lyrics 陣列）。");
+      return;
+    }
+    document.getElementById("f-id").value = obj.id || "";
+    document.getElementById("f-order").value = obj.order || 1;
+    document.getElementById("f-title").value = obj.title || "";
+    document.getElementById("f-title-original").value = obj.titleOriginal || "";
+    document.getElementById("f-yt").value = obj.youtubeId || "";
+    document.getElementById("f-categories").value = Array.isArray(obj.categories) ? obj.categories.join(", ") : "";
+    rows = obj.lyrics.map((l) => {
+      rowSeq += 1;
+      return {
+        key: rowSeq,
+        time: typeof l.time === "number" ? l.time : 0,
+        original: l.original || "",
+        romaji: l.romaji || "",
+        zh: l.zh || "",
+        chant: l.chant || null,
+      };
+    });
+    renderRows();
+    updateBulkHint();
+    if (msgEl) msgEl.textContent = `已載入「${obj.title || obj.id}」，共 ${rows.length} 句。`;
+    if (obj.youtubeId) {
+      document.getElementById("yt-player-wrap").classList.remove("empty");
+      ensureYouTubeAPI(() => {
+        if (ytPlayer) { ytPlayer.loadVideoById(obj.youtubeId); return; }
+        ytPlayer = new YT.Player("yt-player", { videoId: obj.youtubeId, playerVars: { rel: 0 } });
+      });
+    }
+  }
+
+  document.getElementById("btn-import").addEventListener("click", () => {
+    const raw = document.getElementById("import-input").value.trim();
+    if (!raw) { alert("請先貼上要匯入的那段程式碼。"); return; }
+    importSongFromCode(raw, document.getElementById("import-msg"));
+  });
+
+  /* ===== 從 data.js 自動讀取歌單（下拉選單） ===== */
+  let songList = [];
+  async function loadSongList() {
+    const hint = document.getElementById("song-select-hint");
+    try {
+      let blocks;
+      if (ghEnabled()) {
+        const { text } = await ghGetDataJs();
+        blocks = findSongBlocks(text).blocks;
+      } else {
+        const res = await fetch("/api/songs");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const apiBlocks = await res.json(); // 本機伺服器回的欄位是 code，統一改成跟 findSongBlocks 一樣叫 text
+        blocks = apiBlocks.map((b) => ({ id: b.id, title: b.title, order: b.order, text: b.code }));
+      }
+      songList = blocks.map((b) => ({ id: b.id, title: b.title, order: b.order, code: b.text }));
+      const sel = document.getElementById("song-select");
+      const currentId = sel.value;
+      sel.innerHTML = '<option value="">-- 選擇歌曲 --</option>' + songList.map((s) =>
+        `<option value="${escapeAttr(s.id || "")}">${String(s.order ?? "").padStart(2, "0")} ${escapeAttr(s.title || s.id || "（沒有標題）")}</option>`
+      ).join("");
+      sel.value = currentId;
+      hint.textContent = `目前 data.js 裡共 ${songList.length} 首歌。${ghEnabled() ? "（來源：GitHub）" : "（來源：本機伺服器）"}`;
+    } catch (e) {
+      hint.textContent = ghEnabled()
+        ? "讀不到 GitHub 上的 data.js：" + e.message
+        : "讀不到 data.js 歌單，請確認是用「啟動本機預覽.bat」開啟這個頁面（不是雙擊 html），且該 .bat 是最新版本。可以改用下面手動貼上匯入，或設定上面的 GitHub 存檔。";
+    }
+  }
+  document.getElementById("song-select").addEventListener("change", (e) => {
+    const id = e.target.value;
+    if (!id) return;
+    const song = songList.find((s) => s.id === id);
+    if (song) importSongFromCode(song.code, document.getElementById("song-select-hint"));
+  });
+  loadSongList();
+
+  /* ===== YouTube ===== */
+  function ensureYouTubeAPI(callback) {
+    if (window.YT && window.YT.Player) { callback(); return; }
+    window.onYouTubeIframeAPIReady = callback;
+    if (!document.getElementById("yt-iframe-api")) {
+      const tag = document.createElement("script");
+      tag.id = "yt-iframe-api";
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+  }
+
+  document.getElementById("btn-load-video").addEventListener("click", () => {
+    const id = document.getElementById("f-yt").value.trim();
+    if (!id) { alert("請先填 YouTube 影片 ID"); return; }
+    document.getElementById("yt-player-wrap").classList.remove("empty");
+    ensureYouTubeAPI(() => {
+      if (ytPlayer) { ytPlayer.loadVideoById(id); return; }
+      ytPlayer = new YT.Player("yt-player", { videoId: id, playerVars: { rel: 0 } });
+    });
+  });
+
+  setInterval(() => {
+    if (ytPlayer && ytPlayer.getCurrentTime) {
+      document.getElementById("current-time-readout").textContent =
+        "目前播放時間：" + ytPlayer.getCurrentTime().toFixed(1) + " 秒";
+    }
+  }, 300);
+
+  /* ===== 產生程式碼 ===== */
+  function jsStringLiteral(s) {
+    return JSON.stringify(String(s || ""));
+  }
+
+  document.getElementById("btn-generate").addEventListener("click", () => {
+    const id = document.getElementById("f-id").value.trim() || "song-id";
+    const order = parseInt(document.getElementById("f-order").value, 10) || 1;
+    const title = document.getElementById("f-title").value.trim();
+    const titleOriginal = document.getElementById("f-title-original").value.trim();
+    const ytId = document.getElementById("f-yt").value.trim();
+    const categories = document.getElementById("f-categories").value
+      .split(",").map((s) => s.trim()).filter(Boolean);
+
+    const usedChants = [];
+    ["call", "cheer", "clap", "wave", "jump", "twirl"].forEach((k) => {
+      if (rows.some((r) => r.chant === k)) usedChants.push(k);
+    });
+
+    const lyricsCode = rows.map((r) => {
+      return `      { time: ${r.time}, original: ${jsStringLiteral(r.original)}, romaji: ${jsStringLiteral(r.romaji)}, zh: ${jsStringLiteral(r.zh)}, chant: ${r.chant ? jsStringLiteral(r.chant) : "null"} },`;
+    }).join("\n");
+
+    const code = `  {
+    id: ${jsStringLiteral(id)},
+    order: ${order},
+    title: ${jsStringLiteral(title)},
+    titleOriginal: ${jsStringLiteral(titleOriginal)},
+    youtubeId: ${jsStringLiteral(ytId)},
+    chantTypes: [${usedChants.map(jsStringLiteral).join(", ")}],
+    categories: [${categories.map(jsStringLiteral).join(", ")}],
+    lyrics: [
+${lyricsCode}
+    ],
+  },`;
+
+    document.getElementById("export-output").value = code;
+  });
+
+  document.getElementById("btn-save").addEventListener("click", async () => {
+    const code = document.getElementById("export-output").value;
+    if (!code) { alert("請先按「產生程式碼」"); return; }
+    const id = document.getElementById("f-id").value.trim();
+    if (!id) { alert("請先填 id"); return; }
+    const msg = document.getElementById("copy-msg");
+    const btn = document.getElementById("btn-save");
+    btn.disabled = true;
+    try {
+      if (ghEnabled()) {
+        const { text, sha } = await ghGetDataJs(); // 存檔前重新抓最新版本，避免跟別的裝置衝突
+        const newText = buildNewDataJs(text, id, code);
+        const title = document.getElementById("f-title").value.trim();
+        await ghPutDataJs(newText, sha, `更新歌詞：${title || id}`);
+        msg.textContent = "已 commit 到 GitHub！（GitHub Pages 約 1-2 分鐘後才會更新到正式網站）";
+      } else {
+        const res = await fetch("/api/save-song", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, code }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || ("HTTP " + res.status));
+        msg.textContent = "已儲存回 data.js！";
+      }
+      setTimeout(() => (msg.textContent = ""), 4000);
+      loadSongList();
+    } catch (e) {
+      alert("儲存失敗：" + e.message + (ghEnabled() ? "" : "\n\n請確認是用「啟動本機預覽.bat」開啟這個頁面（不是雙擊 html），且該 .bat 是最新版本。"));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("btn-copy").addEventListener("click", async () => {
+    const text = document.getElementById("export-output").value;
+    if (!text) { alert("請先按「產生程式碼」"); return; }
+    const msg = document.getElementById("copy-msg");
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      document.getElementById("export-output").select();
+      document.execCommand("copy");
+    }
+    msg.textContent = "已複製！";
+    setTimeout(() => (msg.textContent = ""), 1800);
+  });
+
+  // 初始給一列示範
+  rows.push(newRow(0));
+  renderRows();
+  updateBulkHint();
+</script>
+
+</body>
+</html>

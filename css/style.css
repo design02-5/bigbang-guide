@@ -1,0 +1,675 @@
+/* ===== 主題變數（參考官方主視覺：黑白、顆粒感、無襯線粗體） ===== */
+:root {
+  --bg: #0b0b0b;
+  --bg-elevated: #161616;
+  --bg-elevated-2: #1e1e1e;
+  --text: #f2f1ec;
+  --text-muted: #98968f;
+  --border: rgba(255, 255, 255, 0.14);
+  --accent: #f2f1ec;
+  --accent-strong: #ffffff;
+  --accent-ink: #0b0b0b;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+
+  /* 應援標記色：沿用歌詞來源網站的顏色邏輯（金＝跟著唱、藍＝喊口號），其餘版面維持黑白 */
+  --chant-call: #d4af6a;
+  --chant-cheer: #6fa8dc;
+
+  --radius: 2px;
+  --radius-sm: 2px;
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", -apple-system, sans-serif;
+}
+
+body.light-mode {
+  --bg: #f4f2ec;
+  --bg-elevated: #ffffff;
+  --bg-elevated-2: #ebe8e0;
+  --text: #121110;
+  --text-muted: #5c5952;
+  --border: rgba(15, 13, 10, 0.16);
+  --accent: #121110;
+  --accent-strong: #000000;
+  --accent-ink: #f4f2ec;
+  --shadow: 0 12px 32px rgba(20, 18, 10, 0.14);
+
+  --chant-call: #a97c1f;
+  --chant-cheer: #2f6fb3;
+}
+
+* { box-sizing: border-box; }
+
+/* 顆粒紋理疊層，呼應官方主視覺的噪點質感 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+body.light-mode::before { opacity: 0.06; mix-blend-mode: multiply; }
+#app { position: relative; z-index: 1; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  transition: background-color .25s ease, color .25s ease;
+}
+
+a { color: var(--accent-strong); }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+#app {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0 10px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: border-color .2s ease, color .2s ease;
+}
+.icon-btn:hover { border-color: var(--accent); color: var(--text); }
+.icon-btn svg { width: 15px; height: 15px; stroke: currentColor; }
+
+/* ===== Hero（參考官方主視覺：黑白、無限圓環紋理、粗黑體大寫） =====
+   淺色模式的合照是「整頁固定背景」，蓋在 body 上、位於最底層：
+   捲動時照片不會跟著移走，logo／按鈕／場次清單都是浮在它上面的前景內容。 */
+body.light-mode.is-home {
+  background-image: url("../images/bg-mobile-light.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+@media (min-width: 960px) {
+  body.light-mode.is-home {
+    background-image: url("../images/bg-desktop-light.jpg");
+  }
+}
+body:not(.light-mode).is-home {
+  background-image: url("../images/bg-mobile-dark.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+@media (min-width: 960px) {
+  body:not(.light-mode).is-home {
+    background-image: url("../images/bg-desktop-dark.jpg");
+  }
+}
+.hero {
+  position: relative;
+  padding: 40px 0 8px;
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+}
+.top-bar--float {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 2;
+  padding: 0;
+}
+.hero-logo {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+}
+.hero-logo img { display: block; width: 100%; height: auto; }
+.hero-logo .logo-light { display: none; }
+body.light-mode .hero-logo .logo-dark { display: none; }
+body.light-mode .hero-logo .logo-light { display: block; }
+
+.hero-kicker {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.hero h1 {
+  position: relative;
+  z-index: 1;
+  margin: 10px 0 4px;
+  font-size: clamp(38px, 9vw, 62px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+}
+.hero h1 .sub {
+  display: block;
+  font-size: .42em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: 8px;
+  text-transform: none;
+}
+
+.countdown {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 18px 0;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+.countdown .dday { font-size: 24px; font-weight: 800; }
+.countdown .timer {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.guide-nav-btn {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin: 26px 0 10px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: opacity .15s ease;
+}
+.guide-nav-btn:hover { opacity: 0.85; }
+
+/* ===== 巡演場次清單（首頁，取代原本單場次的日期卡） ===== */
+.tour-stops { margin-top: 32px; border-top: 1px solid var(--border); padding-top: 18px; }
+body.is-home .tour-stops {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  border-top: none;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+.tour-stops-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.tour-stops-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.tour-stops-count { text-transform: none; letter-spacing: 0; }
+.tour-stops-list { list-style: none; margin: 0; padding: 0; }
+.tour-stop-row {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 4px 14px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+.tsr-date { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.tsr-city { font-weight: 700; letter-spacing: .03em; }
+.tsr-venue { grid-column: 2; color: var(--text-muted); font-size: 13px; margin-top: -2px; }
+.show-added {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  border-bottom: 1px solid var(--text);
+  vertical-align: text-top;
+}
+.tour-stops-note { margin-top: 14px; font-size: 12px; color: var(--text-muted); }
+
+@media (min-width: 480px) {
+  .tour-stop-row { grid-template-columns: 150px 1fr 1fr; align-items: baseline; }
+  .tsr-venue { grid-column: 3; margin-top: 0; text-align: right; }
+}
+
+/* ===== Accordion ===== */
+.accordion { margin-top: 20px; border-top: 1px solid var(--border); }
+.accordion-item { border-bottom: 1px solid var(--border); }
+.accordion-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.chev { width: 16px; height: 16px; stroke: var(--text-muted); flex: none; }
+.accordion-trigger .chev { transition: transform .2s ease; }
+.accordion-item.open .chev { transform: rotate(180deg); }
+.accordion-panel {
+  display: none;
+  padding: 0 4px 22px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.85;
+}
+.accordion-item.open .accordion-panel { display: block; }
+
+.accordion-panel h4 { color: var(--text); margin: 14px 0 8px; font-size: 14px; }
+.accordion-panel .tag {
+  font-size: 11px;
+  color: var(--accent-strong);
+  border: 1px solid var(--border);
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+.section-label {
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--accent);
+  margin: 4px 0 10px;
+}
+dl.info-list { display: grid; grid-template-columns: 88px 1fr; gap: 10px 14px; margin: 10px 0; }
+dl.info-list dt { color: var(--text-muted); font-size: 13px; }
+dl.info-list dd { margin: 0; color: var(--text); font-size: 13px; }
+dl.info-list .note { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+table.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 10px 0;
+}
+table.info-table th, table.info-table td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+}
+table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
+
+.seat-map-box {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.seat-map-box img { max-width: 100%; border-radius: var(--radius-sm); cursor: zoom-in; }
+
+.copy-addr-btn {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.copy-addr-btn:hover { color: var(--text); border-color: var(--accent); }
+
+.placeholder-pill {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--text);
+  background: var(--bg-elevated-2);
+  border: 1px dashed var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.footer nav { display: flex; justify-content: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ===== Guide (song list) ===== */
+.guide-header { padding: 22px 0 6px; }
+.guide-header p { color: var(--text-muted); font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.legend-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 5px 10px; border-radius: 999px;
+}
+.legend-item svg { width: 13px; height: 13px; }
+.legend-item.call { color: var(--chant-call); border-color: var(--chant-call); }
+.legend-item.cheer { color: var(--chant-cheer); border-color: var(--chant-cheer); }
+
+.search-box {
+  margin: 16px 0 10px;
+}
+.search-box label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.search-box input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.sort-group { display: flex; gap: 8px; margin: 10px 0; }
+.sort-group button {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.sort-group button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.category-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.category-filter button {
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.category-filter button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  border-style: solid;
+  font-weight: 700;
+}
+.song-count { font-size: 12px; color: var(--text-muted); margin: 10px 0; }
+
+.song-list { list-style: none; margin: 0; padding: 0; }
+.song-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.song-item:hover { background: var(--bg-elevated); }
+.song-item .num { font-size: 13px; color: var(--text-muted); width: 22px; flex: none; }
+.song-item .title { flex: 1; font-size: 15px; font-weight: 600; }
+.song-item .title small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+.song-item .badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.badge svg { width: 11px; height: 11px; }
+.badge.call { color: var(--chant-call); border-color: var(--chant-call); font-weight: 700; }
+.badge.cheer { color: var(--chant-cheer); border-color: var(--chant-cheer); font-weight: 700; }
+
+/* ===== Song detail ===== */
+.song-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0 6px;
+}
+.song-top-bar h1 { flex: 1; font-size: 18px; margin: 0; }
+
+/* 橫向可滑動的歌曲號碼列，取代彈窗選歌 */
+.song-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 16px;
+  scrollbar-width: thin;
+}
+.song-strip::-webkit-scrollbar { height: 4px; }
+.strip-chip {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.strip-chip:hover { border-color: var(--text); color: var(--text); }
+.strip-chip.active {
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  border-color: var(--accent-strong);
+}
+
+.video-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  margin: 14px 0;
+}
+.video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-empty {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;
+}
+
+.sync-hint { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); margin: 8px 0 16px; }
+.sync-hint .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.legend.small { margin: 10px 0 18px; }
+
+.lyrics-list { list-style: none; margin: 0; padding: 0; }
+.lyric-line {
+  width: 100%;
+  text-align: left;
+  padding: 12px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  transition: background .15s ease;
+  border: 1px solid transparent;
+}
+.lyric-line:hover { background: var(--bg-elevated); }
+.lyric-line.active {
+  background: var(--bg-elevated-2);
+  border-color: var(--text);
+}
+.lyric-line .chant-tag { margin-bottom: 4px; }
+.lyric-line .original { font-size: 15px; color: var(--text); }
+.lyric-line .romaji { font-size: 12px; color: var(--accent-strong); margin-top: 2px; }
+.lyric-line .zh { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.chant-mark.call { color: var(--chant-call); }
+.chant-mark.cheer { color: var(--chant-cheer); }
+.lyric-line.simple-mode .zh { display: none; }
+.lyric-line .word { transition: color .15s ease; }
+.lyric-line.karaoke .word.sung { color: var(--accent-strong); }
+.lyric-line.hidden-by-filter { display: none; }
+
+/* 顯示設定：手機懸浮在角落（歌詞太長也點得到）；寬螢幕改成貼在影片下方，避免蓋住播放器 */
+.display-settings {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.settings-toggle-btn {
+  width: 50px;
+  height: 50px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent-strong);
+  box-shadow: var(--shadow);
+}
+.settings-toggle-btn svg { width: 20px; height: 20px; flex: none; }
+.settings-toggle-btn.is-open { background: var(--bg-elevated); color: var(--text); }
+.settings-toggle-label { display: none; }
+.settings-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px;
+  width: 220px;
+  max-height: 60vh;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.settings-panel[hidden] { display: none; }
+
+@media (min-width: 960px) {
+  .song-media .display-settings {
+    position: static;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    align-items: stretch;
+    margin-top: 14px;
+  }
+  .song-media .settings-toggle-btn {
+    width: auto;
+    height: auto;
+    border-radius: 999px;
+    justify-content: flex-start;
+    padding: 10px 16px;
+    background: var(--bg-elevated);
+    color: var(--text);
+    border-color: var(--border);
+    box-shadow: none;
+  }
+  .song-media .settings-toggle-btn.is-open { background: var(--bg-elevated-2); }
+  .song-media .settings-toggle-label { display: inline; font-size: 13px; font-weight: 700; }
+  .song-media .settings-panel {
+    width: 100%;
+    max-height: none;
+    box-shadow: none;
+  }
+}
+.settings-panel button {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.settings-panel button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  #app { padding: 0 32px 80px; }
+}
+
+/* ===== 單曲頁：手機影片固定在頂部，歌詞往下滑不會把影片推走 ===== */
+@media (max-width: 959px) {
+  .song-media {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    padding-bottom: 6px;
+  }
+}
+
+/* 歌詞捲動區隱藏捲軸（滑鼠滾輪/觸控還是能捲，只是不顯示軸） */
+.song-lyrics-panel {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.song-lyrics-panel::-webkit-scrollbar { display: none; }
+
+/* ===== 單曲頁：寬螢幕雙欄（影片左／歌詞右） ===== */
+body.is-song-page #app { max-width: 880px; }
+
+@media (min-width: 960px) {
+  body.is-song-page #app { max-width: 1600px; }
+  .song-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+  .song-lyrics-panel {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+}
