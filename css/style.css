@@ -547,6 +547,46 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
 .lyric-line.karaoke .word.sung { color: var(--accent-strong); }
 .lyric-line.hidden-by-filter { display: none; }
 
+/* ===== 隱藏編輯模式（?edit=1 解鎖，一般歌迷看不到這些） ===== */
+.edit-mode-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: var(--chant-cheer);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.edit-mode-banner button {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .6);
+  color: #fff;
+  font-size: 12px;
+}
+.edit-pencil {
+  float: right;
+  opacity: .5;
+  font-size: 13px;
+  padding: 2px 4px;
+}
+.lyric-line:hover .edit-pencil { opacity: 1; }
+.lyric-line-edit { padding: 6px 0; margin-bottom: 4px; }
+.line-edit-fields { display: flex; flex-direction: column; gap: 6px; }
+.line-edit-fields input {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-strong);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
 /* 顯示設定：手機懸浮在角落（歌詞太長也點得到）；寬螢幕改成貼在影片下方，避免蓋住播放器 */
 .display-settings {
   position: fixed;

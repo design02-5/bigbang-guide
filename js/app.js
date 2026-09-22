@@ -15,6 +15,22 @@ const ICONS = {
   sliders: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h13M21 18h-1"/><circle cx="13" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>`,
 };
 
+/* ===== 隱藏編輯模式（歌迷看的正式網址完全不受影響）=====
+   網址後面加 ?edit=1 解鎖一次，這台裝置的瀏覽器會記住（localStorage），之後不用每次都加。
+   GitHub 存檔設定沿用 tools/lyrics-builder.html 那邊存的同一組（同一台裝置的瀏覽器共用）。 */
+const EDIT_MODE_KEY = "bg_cosmos_edit_mode";
+if (new URLSearchParams(location.search).get("edit") === "1") {
+  localStorage.setItem(EDIT_MODE_KEY, "1");
+}
+function isEditModeOn() {
+  return localStorage.getItem(EDIT_MODE_KEY) === "1";
+}
+function exitEditMode() {
+  localStorage.removeItem(EDIT_MODE_KEY);
+  location.href = location.pathname + location.hash;
+}
+let editingLineIndex = null; // 歌曲頁目前正在編輯哪一句（null = 沒有在編輯）
+
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
   return String(str).replace(/[&<>"']/g, (s) => ({
@@ -110,6 +126,8 @@ function afterRender(route) {
     renderLyricsList(song);
     setupPlayer(song);
     wireLyricsClick();
+    wireLyricsEdit(song);
+    wireEditModeBanner();
     wireToolbar(song);
     wireSongStrip();
     wireSettingsPanel();
@@ -442,7 +460,14 @@ function renderSong(id) {
   const song = idx >= 0 ? SONGS[idx] : SONGS[0];
   const prev = SONGS[(idx <= 0 ? SONGS.length : idx) - 1];
   const next = SONGS[(idx + 1) % SONGS.length];
+  editingLineIndex = null;
   return `
+    ${isEditModeOn() ? `
+      <div class="edit-mode-banner">
+        ✏️ 編輯模式：點歌詞旁的鉛筆改字，改完點別的地方會自動存回 GitHub
+        <button id="btn-exit-edit">退出編輯模式</button>
+      </div>
+    ` : ""}
     <div class="song-top-bar">
       <button class="icon-btn" onclick="location.hash='#/guide'">${ICONS.back}</button>
       <h1>${escapeHtml(song.title)}</h1>
@@ -477,6 +502,16 @@ function renderSong(id) {
 }
 
 function lyricLineHtml(line, index) {
+  if (isEditModeOn() && index === editingLineIndex) {
+    return `
+      <li class="lyric-line-edit" data-edit-index="${index}">
+        <div class="line-edit-fields">
+          <input type="text" data-field="original" value="${escapeHtml(line.original)}" placeholder="原文">
+          <input type="text" data-field="romaji" value="${escapeHtml(line.romaji)}" placeholder="羅馬拼音">
+          <input type="text" data-field="zh" value="${escapeHtml(line.zh)}" placeholder="中文">
+        </div>
+      </li>`;
+  }
   const chantBadge = line.chant ? `<span class="badge ${line.chant} chant-tag">${ICONS[line.chant]}${CHANT_TYPES[line.chant].label}</span>` : "";
   const hideByFilter = toggleState.onlyCall && line.chant !== "call";
   const classes = [
@@ -488,6 +523,7 @@ function lyricLineHtml(line, index) {
   return `
     <li><button class="${classes}" data-time="${line.time}" data-index="${index}">
       ${chantBadge}
+      ${isEditModeOn() ? `<span class="edit-pencil" data-edit-pencil="${index}" title="編輯這句">✏️</span>` : ""}
       ${toggleState.original && line.original ? `<div class="original">${renderChantText(line.original, line.chant)}</div>` : ""}
       ${toggleState.romaji && line.romaji ? `<div class="romaji">${renderChantText(line.romaji, line.chant)}</div>` : ""}
       ${toggleState.zh && line.zh ? `<div class="zh">${renderChantText(line.zh, line.chant)}</div>` : ""}
@@ -509,6 +545,61 @@ function wireLyricsClick() {
       playerState.ytPlayer.playVideo();
     }
   });
+}
+
+/* ===== 隱藏編輯模式：點鉛筆進入行內編輯，離開那一行（focusout）自動存回 GitHub ===== */
+async function saveEditedLine(song, index, fields) {
+  const line = song.lyrics[index];
+  if (!line) return;
+  line.original = fields.original;
+  line.romaji = fields.romaji;
+  line.zh = fields.zh;
+  editingLineIndex = null;
+  renderLyricsList(song); // 先樂觀更新畫面，不等網路回應
+
+  if (!ghEnabled()) {
+    alert("還沒設定 GitHub 存檔（先去 tools/lyrics-builder.html 設定一次帳號/repo/token），這次改的字只留在畫面上，重新整理就不見了。");
+    return;
+  }
+  try {
+    await ghSaveSong(song, `編輯歌詞：${song.title} 第 ${index + 1} 句`);
+  } catch (e) {
+    alert("存檔失敗：" + e.message);
+  }
+}
+function wireLyricsEdit(song) {
+  const el = document.getElementById("lyrics-list");
+  if (!el || !isEditModeOn()) return;
+
+  // 用 capture 階段攔截鉛筆點擊，搶在 wireLyricsClick 的「點歌詞跳影片位置」之前處理
+  el.addEventListener("click", (e) => {
+    const pencil = e.target.closest("[data-edit-pencil]");
+    if (!pencil) return;
+    e.preventDefault();
+    e.stopPropagation();
+    editingLineIndex = Number(pencil.dataset.editPencil);
+    renderLyricsList(song);
+    const input = el.querySelector(`.lyric-line-edit[data-edit-index="${editingLineIndex}"] input`);
+    if (input) input.focus();
+  }, true);
+
+  el.addEventListener("focusout", (e) => {
+    const group = e.target.closest(".line-edit-fields");
+    if (!group) return;
+    if (group.contains(e.relatedTarget)) return; // 還在同一組欄位裡切換，不算離開
+    const li = group.closest(".lyric-line-edit");
+    const index = Number(li.dataset.editIndex);
+    const fields = {
+      original: group.querySelector('[data-field="original"]').value,
+      romaji: group.querySelector('[data-field="romaji"]').value,
+      zh: group.querySelector('[data-field="zh"]').value,
+    };
+    saveEditedLine(song, index, fields);
+  });
+}
+function wireEditModeBanner() {
+  const btn = document.getElementById("btn-exit-edit");
+  if (btn) btn.addEventListener("click", exitEditMode);
 }
 function wireToolbar(song) {
   const map = {

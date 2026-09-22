@@ -49,6 +49,19 @@
   .mark-bar { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
   .mark-bar .current-time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
 
+  .quick-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .quick-add-row input { flex: 1; min-width: 140px; }
+  .quick-add-row button { flex-shrink: 0; }
+
+  #quick-recent { margin-top: 14px; }
+  .quick-recent-title { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .quick-recent-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .quick-recent-row .qr-time {
+    flex-shrink: 0; width: 48px; font-variant-numeric: tabular-nums; font-size: 12px;
+    color: var(--muted); text-align: right;
+  }
+  .quick-recent-row input { flex: 1; min-width: 0; font-size: 13px; padding: 6px 8px; }
+
   table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
   th, td { border-bottom: 1px solid var(--border); padding: 6px 6px; text-align: left; vertical-align: top; }
   th { color: var(--muted); font-weight: 600; font-size: 12px; }
@@ -153,9 +166,15 @@
   <div class="mark-bar">
     <button class="primary" id="btn-load-video">載入 / 更新影片</button>
     <span class="current-time" id="current-time-readout">目前播放時間：--</span>
-    <button id="btn-add-at-time">＋ 用目前時間新增一句</button>
+  </div>
+  <div class="quick-add-row">
+    <input type="text" id="qa-original" placeholder="原文（邊聽邊打，打完按 Enter 或按右邊按鈕，直接連時間點一起新增）">
+    <input type="text" id="qa-romaji" placeholder="羅馬拼音（選填，也可以之後再補）">
+    <input type="text" id="qa-zh" placeholder="中文翻譯（選填）">
+    <button class="primary" id="btn-add-at-time">＋ 用目前時間新增這句</button>
     <button id="btn-add-blank">＋ 新增空白列（時間 0）</button>
   </div>
+  <div id="quick-recent"></div>
 </div>
 
 <div class="panel">
@@ -208,6 +227,7 @@
   <textarea id="export-output" readonly placeholder="按「產生程式碼」後，這裡會出現可以直接貼進 data.js 的內容"></textarea>
 </div>
 
+<script src="../js/gh-sync.js"></script>
 <script>
   const CHANT_OPTIONS = [
     { key: null, label: "無" },
@@ -223,146 +243,8 @@
   let ytPlayer = null;
   let rowSeq = 0;
 
-  /* ===== GitHub 存檔模式 ===== */
-  const GH_STORAGE_KEY = "bg_cosmos_lyrics_gh_settings";
-  const DATA_JS_PATH = "js/data.js";
-  let ghLastSha = null; // 記住最後一次從 GitHub 讀到的 sha，存檔時當作起點（存檔前會重新抓最新的，避免衝突）
-
-  function ghSettings() {
-    try {
-      const raw = localStorage.getItem(GH_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
-  }
-  function ghEnabled() {
-    const s = ghSettings();
-    return !!(s && s.owner && s.repo && s.token);
-  }
-  function ghApiBase() {
-    const s = ghSettings();
-    return `https://api.github.com/repos/${encodeURIComponent(s.owner)}/${encodeURIComponent(s.repo)}`;
-  }
-  function ghHeaders() {
-    const s = ghSettings();
-    return {
-      "Authorization": "Bearer " + s.token,
-      "Accept": "application/vnd.github+json",
-    };
-  }
-  function utf8ToBase64(str) {
-    const bytes = new TextEncoder().encode(str);
-    let binary = "";
-    bytes.forEach((b) => (binary += String.fromCharCode(b)));
-    return btoa(binary);
-  }
-  function base64ToUtf8(b64) {
-    const binary = atob(b64.replace(/\n/g, ""));
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return new TextDecoder("utf-8").decode(bytes);
-  }
-
-  async function ghGetDataJs() {
-    const s = ghSettings();
-    const url = `${ghApiBase()}/contents/${DATA_JS_PATH}?ref=${encodeURIComponent(s.branch || "main")}&t=${Date.now()}`;
-    const res = await fetch(url, { headers: ghHeaders() });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(`讀取失敗（HTTP ${res.status}）：${body.message || "請檢查帳號/repo/分支/Token"}`);
-    }
-    const data = await res.json();
-    ghLastSha = data.sha;
-    return { text: base64ToUtf8(data.content), sha: data.sha };
-  }
-
-  async function ghPutDataJs(newText, sha, message) {
-    const s = ghSettings();
-    const url = `${ghApiBase()}/contents/${DATA_JS_PATH}`;
-    const res = await fetch(url, {
-      method: "PUT",
-      headers: { ...ghHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: message || "更新歌詞（lyrics-builder）",
-        content: utf8ToBase64(newText),
-        sha,
-        branch: s.branch || "main",
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      if (res.status === 409) throw new Error("存檔衝突：data.js 在別的裝置剛被改過，請重新整理頁面再試一次。");
-      throw new Error(`存檔失敗（HTTP ${res.status}）：${body.message || "請檢查 Token 權限"}`);
-    }
-    return res.json();
-  }
-
-  /* 把 Python 版 find_song_blocks / save_song 的邏輯搬到 JS，兩邊（本機伺服器／GitHub API）共用同一套 */
-  function findArraySpan(text, marker) {
-    const start = text.indexOf(marker);
-    if (start === -1) throw new Error(`data.js 裡找不到「${marker}」，格式可能被改過`);
-    const bracketStart = start + marker.length - 1;
-    let depth = 0;
-    let i = bracketStart;
-    while (i < text.length) {
-      const c = text[i];
-      if (c === "[") depth++;
-      else if (c === "]") { depth--; if (depth === 0) return [bracketStart, i]; }
-      i++;
-    }
-    throw new Error("找不到 SONGS 陣列的結尾");
-  }
-  function findSongBlocks(text) {
-    const [arrStart, arrEnd] = findArraySpan(text, "const SONGS = [");
-    const blocks = [];
-    let i = arrStart + 1;
-    while (i < arrEnd) {
-      while (i < arrEnd && " \t\r\n,".includes(text[i])) i++;
-      if (i >= arrEnd) break;
-      if (text[i] !== "{") { i++; continue; }
-      const objStart = i;
-      let depth = 0, inStr = null, j = i;
-      while (j < arrEnd) {
-        const c = text[j];
-        if (inStr) {
-          if (c === "\\") { j += 2; continue; }
-          if (c === inStr) inStr = null;
-        } else {
-          if (c === '"' || c === "'" || c === "`") inStr = c;
-          else if (c === "{") depth++;
-          else if (c === "}") { depth--; if (depth === 0) break; }
-        }
-        j++;
-      }
-      const objEnd = j + 1;
-      const blockText = text.slice(objStart, objEnd);
-      const idM = blockText.match(/id\s*:\s*"([^"]*)"/);
-      const titleM = blockText.match(/title\s*:\s*"([^"]*)"/);
-      const orderM = blockText.match(/order\s*:\s*(\d+)/);
-      blocks.push({
-        id: idM ? idM[1] : null,
-        title: titleM ? titleM[1] : "",
-        order: orderM ? parseInt(orderM[1], 10) : null,
-        start: objStart,
-        end: objEnd,
-        text: blockText,
-      });
-      i = objEnd;
-    }
-    return { blocks, arrStart, arrEnd };
-  }
-  function buildNewDataJs(text, songId, newCode) {
-    let code = newCode.trim();
-    if (code.endsWith(",")) code = code.slice(0, -1);
-    const { blocks, arrEnd } = findSongBlocks(text);
-    const match = blocks.find((b) => b.id === songId);
-    if (match) {
-      return text.slice(0, match.start) + code + text.slice(match.end);
-    }
-    let prefix = text.slice(0, arrEnd);
-    const stripped = prefix.replace(/\s+$/, "");
-    if (!stripped.endsWith("[") && !stripped.endsWith(",")) prefix = stripped + ",\n";
-    return prefix + "  " + code + ",\n" + text.slice(arrEnd);
-  }
+  /* GitHub 存檔的共用邏輯（ghSettings/ghEnabled/ghGetDataJs/ghPutDataJs/findSongBlocks/songToCode 等）
+     都搬到 ../js/gh-sync.js 了，跟正式網站的隱藏編輯模式共用同一份，這裡只留 UI 邏輯。 */
 
   function refreshGhStatusUI() {
     const el = document.getElementById("gh-status");
@@ -449,7 +331,38 @@
       </tr>
     `).join("");
     document.getElementById("row-count-hint").textContent = `共 ${rows.length} 句`;
+    renderQuickRecent();
   }
+
+  /* 影片旁邊的「最近新增」小清單，讓人不用捲到下面表格就能直接修正剛打的文字 */
+  function renderQuickRecent() {
+    const wrap = document.getElementById("quick-recent");
+    const recent = rows.slice(-5);
+    if (recent.length === 0) { wrap.innerHTML = ""; return; }
+    wrap.innerHTML = `<div class="quick-recent-title">最近新增（可以直接在這裡改文字，不用捲到下面表格）</div>` +
+      recent.map((r) => `
+        <div class="quick-recent-row" data-key="${r.key}">
+          <span class="qr-time">${r.time}s</span>
+          <input type="text" value="${escapeAttr(r.original)}" data-field="original" placeholder="原文">
+          <input type="text" value="${escapeAttr(r.romaji)}" data-field="romaji" placeholder="羅馬拼音">
+          <input type="text" value="${escapeAttr(r.zh)}" data-field="zh" placeholder="中文">
+        </div>
+      `).join("");
+  }
+
+  document.getElementById("quick-recent").addEventListener("input", (e) => {
+    const rowEl = e.target.closest(".quick-recent-row");
+    if (!rowEl) return;
+    const key = Number(rowEl.dataset.key);
+    const row = rows.find((r) => r.key === key);
+    if (!row) return;
+    const field = e.target.dataset.field;
+    if (!field) return;
+    row[field] = e.target.value;
+    // 同步更新下面主表格對應那一列，不整個 re-render 以免打斷輸入焦點
+    const mainInput = document.querySelector(`#rows-body tr[data-key="${key}"] input[data-field="${field}"]`);
+    if (mainInput && mainInput !== e.target) mainInput.value = e.target.value;
+  });
 
   function escapeAttr(s) {
     return String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -488,15 +401,37 @@
     renderRows();
   });
 
-  document.getElementById("btn-add-blank").addEventListener("click", () => {
-    rows.push(newRow(0));
+  /* 用目前輸入框裡打好的原文/羅馬拼音/中文，連同時間點一次新增一列，加完清空輸入框、游標移回原文欄位 */
+  function addRowWithText(time) {
+    const r = newRow(time);
+    r.original = document.getElementById("qa-original").value;
+    r.romaji = document.getElementById("qa-romaji").value;
+    r.zh = document.getElementById("qa-zh").value;
+    rows.push(r);
     renderRows();
+    document.getElementById("qa-original").value = "";
+    document.getElementById("qa-romaji").value = "";
+    document.getElementById("qa-zh").value = "";
+    document.getElementById("qa-original").focus();
+  }
+
+  document.getElementById("btn-add-blank").addEventListener("click", () => {
+    addRowWithText(0);
   });
 
   document.getElementById("btn-add-at-time").addEventListener("click", () => {
     const t = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
-    rows.push(newRow(t));
-    renderRows();
+    addRowWithText(t);
+  });
+
+  // 三個輸入框都可以直接按 Enter 新增（不用滑鼠點按鈕），方便邊聽邊打
+  ["qa-original", "qa-romaji", "qa-zh"].forEach((id) => {
+    document.getElementById(id).addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("btn-add-at-time").click();
+      }
+    });
   });
 
   document.getElementById("btn-apply-bulk").addEventListener("click", () => {
@@ -639,43 +574,18 @@
     }
   }, 300);
 
-  /* ===== 產生程式碼 ===== */
-  function jsStringLiteral(s) {
-    return JSON.stringify(String(s || ""));
-  }
-
+  /* ===== 產生程式碼（用 gh-sync.js 共用的 songToCode，跟隱藏編輯模式存檔時是同一套序列化邏輯） ===== */
   document.getElementById("btn-generate").addEventListener("click", () => {
-    const id = document.getElementById("f-id").value.trim() || "song-id";
-    const order = parseInt(document.getElementById("f-order").value, 10) || 1;
-    const title = document.getElementById("f-title").value.trim();
-    const titleOriginal = document.getElementById("f-title-original").value.trim();
-    const ytId = document.getElementById("f-yt").value.trim();
-    const categories = document.getElementById("f-categories").value
-      .split(",").map((s) => s.trim()).filter(Boolean);
-
-    const usedChants = [];
-    ["call", "cheer", "clap", "wave", "jump", "twirl"].forEach((k) => {
-      if (rows.some((r) => r.chant === k)) usedChants.push(k);
-    });
-
-    const lyricsCode = rows.map((r) => {
-      return `      { time: ${r.time}, original: ${jsStringLiteral(r.original)}, romaji: ${jsStringLiteral(r.romaji)}, zh: ${jsStringLiteral(r.zh)}, chant: ${r.chant ? jsStringLiteral(r.chant) : "null"} },`;
-    }).join("\n");
-
-    const code = `  {
-    id: ${jsStringLiteral(id)},
-    order: ${order},
-    title: ${jsStringLiteral(title)},
-    titleOriginal: ${jsStringLiteral(titleOriginal)},
-    youtubeId: ${jsStringLiteral(ytId)},
-    chantTypes: [${usedChants.map(jsStringLiteral).join(", ")}],
-    categories: [${categories.map(jsStringLiteral).join(", ")}],
-    lyrics: [
-${lyricsCode}
-    ],
-  },`;
-
-    document.getElementById("export-output").value = code;
+    const song = {
+      id: document.getElementById("f-id").value.trim() || "song-id",
+      order: parseInt(document.getElementById("f-order").value, 10) || 1,
+      title: document.getElementById("f-title").value.trim(),
+      titleOriginal: document.getElementById("f-title-original").value.trim(),
+      youtubeId: document.getElementById("f-yt").value.trim(),
+      categories: document.getElementById("f-categories").value.split(",").map((s) => s.trim()).filter(Boolean),
+      lyrics: rows.map((r) => ({ time: r.time, original: r.original, romaji: r.romaji, zh: r.zh, chant: r.chant })),
+    };
+    document.getElementById("export-output").value = songToCode(song);
   });
 
   document.getElementById("btn-save").addEventListener("click", async () => {
