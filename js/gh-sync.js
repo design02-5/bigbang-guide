@@ -158,11 +158,11 @@ function jsStringLiteral(s) {
 }
 function songToCode(song) {
   const usedChants = [];
-  ["call", "cheer", "clap", "wave", "jump", "twirl"].forEach((k) => {
+  ["call", "cheer", "clap"].forEach((k) => {
     if (song.lyrics.some((l) => l.chant === k)) usedChants.push(k);
   });
   const lyricsCode = song.lyrics.map((l) => {
-    return `      { time: ${l.time}, original: ${jsStringLiteral(l.original)}, romaji: ${jsStringLiteral(l.romaji)}, zh: ${jsStringLiteral(l.zh)}, chant: ${l.chant ? jsStringLiteral(l.chant) : "null"} },`;
+    return `      { time: ${l.time}, original: ${jsStringLiteral(l.original)}, romaji: ${jsStringLiteral(l.romaji)}, zh: ${jsStringLiteral(l.zh)}, kongEr: ${jsStringLiteral(l.kongEr)}, chant: ${l.chant ? jsStringLiteral(l.chant) : "null"} },`;
   }).join("\n");
   const categories = Array.isArray(song.categories) ? song.categories : [];
   return `  {

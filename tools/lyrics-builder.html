@@ -171,6 +171,7 @@
     <input type="text" id="qa-original" placeholder="原文（邊聽邊打，打完按 Enter 或按右邊按鈕，直接連時間點一起新增）">
     <input type="text" id="qa-romaji" placeholder="羅馬拼音（選填，也可以之後再補）">
     <input type="text" id="qa-zh" placeholder="中文翻譯（選填）">
+    <input type="text" id="qa-kongEr" placeholder="空耳（選填）">
     <button class="primary" id="btn-add-at-time">＋ 用目前時間新增這句</button>
     <button id="btn-add-blank">＋ 新增空白列（時間 0）</button>
   </div>
@@ -207,6 +208,7 @@
         <th>原文</th>
         <th>羅馬拼音</th>
         <th>中文翻譯</th>
+        <th>空耳</th>
         <th class="col-chant">應援類型</th>
         <th class="col-del"></th>
       </tr>
@@ -234,9 +236,6 @@
     { key: "call", label: "大合唱" },
     { key: "cheer", label: "應援詞" },
     { key: "clap", label: "拍手" },
-    { key: "wave", label: "揮手" },
-    { key: "jump", label: "跳躍" },
-    { key: "twirl", label: "轉臂" },
   ];
 
   let rows = [];
@@ -310,7 +309,7 @@
 
   function newRow(time) {
     rowSeq += 1;
-    return { key: rowSeq, time: Math.round(time * 10) / 10, original: "", romaji: "", zh: "", chant: null };
+    return { key: rowSeq, time: Math.round(time * 10) / 10, original: "", romaji: "", zh: "", kongEr: "", chant: null };
   }
 
   function renderRows() {
@@ -322,6 +321,7 @@
         <td><input type="text" value="${escapeAttr(r.original)}" data-field="original"></td>
         <td><input type="text" value="${escapeAttr(r.romaji)}" data-field="romaji"></td>
         <td><input type="text" value="${escapeAttr(r.zh)}" data-field="zh"></td>
+        <td><input type="text" value="${escapeAttr(r.kongEr)}" data-field="kongEr" placeholder="空耳（選填）"></td>
         <td class="col-chant">
           <div class="chant-btns">
             ${CHANT_OPTIONS.map(o => `<button type="button" data-chant="${o.key ?? ""}" data-active="${r.chant === o.key}">${o.label}</button>`).join("")}
@@ -346,6 +346,7 @@
           <input type="text" value="${escapeAttr(r.original)}" data-field="original" placeholder="原文">
           <input type="text" value="${escapeAttr(r.romaji)}" data-field="romaji" placeholder="羅馬拼音">
           <input type="text" value="${escapeAttr(r.zh)}" data-field="zh" placeholder="中文">
+          <input type="text" value="${escapeAttr(r.kongEr)}" data-field="kongEr" placeholder="空耳">
         </div>
       `).join("");
   }
@@ -407,11 +408,13 @@
     r.original = document.getElementById("qa-original").value;
     r.romaji = document.getElementById("qa-romaji").value;
     r.zh = document.getElementById("qa-zh").value;
+    r.kongEr = document.getElementById("qa-kongEr").value;
     rows.push(r);
     renderRows();
     document.getElementById("qa-original").value = "";
     document.getElementById("qa-romaji").value = "";
     document.getElementById("qa-zh").value = "";
+    document.getElementById("qa-kongEr").value = "";
     document.getElementById("qa-original").focus();
   }
 
@@ -425,7 +428,7 @@
   });
 
   // 三個輸入框都可以直接按 Enter 新增（不用滑鼠點按鈕），方便邊聽邊打
-  ["qa-original", "qa-romaji", "qa-zh"].forEach((id) => {
+  ["qa-original", "qa-romaji", "qa-zh", "qa-kongEr"].forEach((id) => {
     document.getElementById(id).addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -487,6 +490,7 @@
         original: l.original || "",
         romaji: l.romaji || "",
         zh: l.zh || "",
+        kongEr: l.kongEr || "",
         chant: l.chant || null,
       };
     });
@@ -583,7 +587,7 @@
       titleOriginal: document.getElementById("f-title-original").value.trim(),
       youtubeId: document.getElementById("f-yt").value.trim(),
       categories: document.getElementById("f-categories").value.split(",").map((s) => s.trim()).filter(Boolean),
-      lyrics: rows.map((r) => ({ time: r.time, original: r.original, romaji: r.romaji, zh: r.zh, chant: r.chant })),
+      lyrics: rows.map((r) => ({ time: r.time, original: r.original, romaji: r.romaji, zh: r.zh, kongEr: r.kongEr, chant: r.chant })),
     };
     document.getElementById("export-output").value = songToCode(song);
   });

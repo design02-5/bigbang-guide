@@ -540,11 +540,11 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
 .lyric-line .original { font-size: 15px; color: var(--text); }
 .lyric-line .romaji { font-size: 12px; color: var(--accent-strong); margin-top: 2px; }
 .lyric-line .zh { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.lyric-line .kong-er { font-size: 12px; color: var(--chant-cheer); margin-top: 2px; font-style: italic; }
 .chant-mark.call { color: var(--chant-call); }
 .chant-mark.cheer { color: var(--chant-cheer); }
 .lyric-line.simple-mode .zh { display: none; }
 .lyric-line .word { transition: color .15s ease; }
-.lyric-line.karaoke .word.sung { color: var(--accent-strong); }
 .lyric-line.hidden-by-filter { display: none; }
 
 /* ===== 隱藏編輯模式（?edit=1 解鎖，一般歌迷看不到這些） ===== */
