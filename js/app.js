@@ -464,9 +464,10 @@ function renderSong(id) {
   return `
     ${isEditModeOn() ? `
       <div class="edit-mode-banner">
-        ✏️ 編輯模式：點歌詞旁的鉛筆改字，改完點別的地方會自動存回 GitHub
+        ✏️ 編輯模式：點歌詞旁的鉛筆改字，改完點別的地方（讓欄位失去焦點）就會自動存回 GitHub
         <button id="btn-exit-edit">退出編輯模式</button>
       </div>
+      <div id="edit-save-toast" class="edit-save-toast" hidden></div>
     ` : ""}
     <div class="song-top-bar">
       <button class="icon-btn" onclick="location.hash='#/guide'">${ICONS.back}</button>
@@ -548,6 +549,18 @@ function wireLyricsClick() {
 }
 
 /* ===== 隱藏編輯模式：點鉛筆進入行內編輯，離開那一行（focusout）自動存回 GitHub ===== */
+let editSaveToastTimer = null;
+function showEditSaveToast(text, kind) {
+  const el = document.getElementById("edit-save-toast");
+  if (!el) return;
+  el.textContent = text;
+  el.className = "edit-save-toast" + (kind ? " " + kind : "");
+  el.hidden = false;
+  clearTimeout(editSaveToastTimer);
+  if (kind !== "saving") {
+    editSaveToastTimer = setTimeout(() => { el.hidden = true; }, 3000);
+  }
+}
 async function saveEditedLine(song, index, fields) {
   const line = song.lyrics[index];
   if (!line) return;
@@ -558,12 +571,16 @@ async function saveEditedLine(song, index, fields) {
   renderLyricsList(song); // 先樂觀更新畫面，不等網路回應
 
   if (!ghEnabled()) {
+    showEditSaveToast("⚠️ 還沒設定 GitHub 存檔，這次改的字只留在畫面上，重新整理就不見了", "error");
     alert("還沒設定 GitHub 存檔（先去 tools/lyrics-builder.html 設定一次帳號/repo/token），這次改的字只留在畫面上，重新整理就不見了。");
     return;
   }
+  showEditSaveToast("存檔中…", "saving");
   try {
     await ghSaveSong(song, `編輯歌詞：${song.title} 第 ${index + 1} 句`);
+    showEditSaveToast(`✓ 第 ${index + 1} 句已存回 GitHub`, "ok");
   } catch (e) {
+    showEditSaveToast("✕ 存檔失敗：" + e.message, "error");
     alert("存檔失敗：" + e.message);
   }
 }
