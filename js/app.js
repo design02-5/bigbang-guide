@@ -334,7 +334,7 @@ function updateCountdownBox() {
 }
 
 /* ===== 應援指南（歌曲清單） ===== */
-let guideState = { search: "", sort: "default", categories: [] };
+let guideState = { search: "", categories: [] };
 function getAllCategories() {
   const set = new Set();
   SONGS.forEach((s) => (s.categories || []).forEach((c) => set.add(c)));
@@ -355,15 +355,10 @@ function renderGuide() {
       <label for="song-search">搜尋歌曲</label>
       <input id="song-search" type="text" placeholder="輸入曲名..." value="${escapeHtml(guideState.search)}">
     </div>
-    <div class="sort-group" role="group" aria-label="歌曲清單排序">
-      <button data-sort="default" aria-pressed="${guideState.sort === "default"}">預設</button>
-      <button data-sort="name" aria-pressed="${guideState.sort === "name"}">名稱</button>
-      <button data-sort="call" aria-pressed="${guideState.sort === "call"}">大合唱</button>
+    <div class="filter-bar" role="group" aria-label="分類篩選（可多選）">
+      <button class="filter-default" data-filter-default aria-pressed="${guideState.categories.length === 0}">預設</button>
+      ${allCategories.map((c) => `<button class="filter-category" data-category="${escapeHtml(c)}" aria-pressed="${guideState.categories.includes(c)}">${escapeHtml(c)}</button>`).join("")}
     </div>
-    ${allCategories.length ? `
-    <div class="category-filter" role="group" aria-label="分類篩選（可多選）">
-      ${allCategories.map((c) => `<button data-category="${escapeHtml(c)}" aria-pressed="${guideState.categories.includes(c)}">${escapeHtml(c)}</button>`).join("")}
-    </div>` : ""}
     <div class="song-count" id="song-count"></div>
     <ul class="song-list" id="song-list"></ul>
     ${footerHtml()}
@@ -381,14 +376,7 @@ function getFilteredSortedSongs() {
   if (guideState.categories.length) {
     list = list.filter((s) => (s.categories || []).some((c) => guideState.categories.includes(c)));
   }
-  if (guideState.sort === "name") {
-    list.sort((a, b) => a.title.localeCompare(b.title, "zh-Hant"));
-  } else if (guideState.sort === "call") {
-    const callCount = (s) => s.lyrics.filter((l) => l.chant === "call").length;
-    list.sort((a, b) => callCount(b) - callCount(a));
-  } else {
-    list.sort((a, b) => a.order - b.order);
-  }
+  list.sort((a, b) => a.order - b.order);
   return list;
 }
 function renderSongList() {
@@ -409,19 +397,18 @@ function wireGuideControls() {
     guideState.search = e.target.value;
     renderSongList();
   });
-  document.querySelectorAll(".sort-group button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      guideState.sort = btn.dataset.sort;
-      document.querySelectorAll(".sort-group button").forEach((b) => b.setAttribute("aria-pressed", b === btn));
-      renderSongList();
-    });
+  document.querySelector(".filter-default").addEventListener("click", () => {
+    guideState.categories = [];
+    document.querySelectorAll(".filter-bar button").forEach((b) => b.setAttribute("aria-pressed", b.hasAttribute("data-filter-default")));
+    renderSongList();
   });
-  document.querySelectorAll(".category-filter button").forEach((btn) => {
+  document.querySelectorAll(".filter-category").forEach((btn) => {
     btn.addEventListener("click", () => {
       const c = btn.dataset.category;
       const i = guideState.categories.indexOf(c);
       if (i === -1) guideState.categories.push(c); else guideState.categories.splice(i, 1);
       btn.setAttribute("aria-pressed", guideState.categories.includes(c));
+      document.querySelector(".filter-default").setAttribute("aria-pressed", guideState.categories.length === 0);
       renderSongList();
     });
   });
