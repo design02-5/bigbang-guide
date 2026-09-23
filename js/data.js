@@ -153,7 +153,7 @@ const SONGS = [
     titleOriginal: "",
     youtubeId: "5eiytN0_YR8",
     chantTypes: [],
-    categories: ["ST1"],
+    categories: [],
     lyrics: [
       { time: 0, original: "", romaji: "", zh: "", kongEr: "", chant: null },
     ],
