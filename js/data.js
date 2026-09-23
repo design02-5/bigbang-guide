@@ -1033,7 +1033,7 @@ const SONGS = [
     chantTypes: ["call", "cheer"],
     categories: ["DAESUNG SOLO"],
     lyrics: [
-      { time: 3, original: "안녕하세요, 대성입니다", romaji: "", zh: "你好，我是大聲", kongEr: "", chant: null },
+      { time: 8, original: "안녕하세요, 대성입니다", romaji: "", zh: "你好，我是大聲", kongEr: "", chant: null },
       { time: 6, original: "한도 한도 초과야", romaji: "", zh: "限度 限度 超標了", kongEr: "", chant: null },
       { time: 9, original: "줘도 줘도 모자라", romaji: "", zh: "給了又給 還是不夠", kongEr: "", chant: null },
       { time: 12, original: "내 심장을 새까맣게", romaji: "", zh: "妳是個 懂得將我的心", kongEr: "", chant: null },
