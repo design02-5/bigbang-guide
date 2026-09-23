@@ -107,7 +107,7 @@ button {
 /* ===== Hero（參考官方主視覺：黑白、無限圓環紋理、粗黑體大寫） =====
    淺色模式的合照是「整頁固定背景」，蓋在 body 上、位於最底層：
    捲動時照片不會跟著移走，logo／按鈕／場次清單都是浮在它上面的前景內容。 */
-body.light-mode {
+body.light-mode:not(.is-song-page) {
   background-image: url("../images/bg-mobile-light.jpg");
   background-size: cover;
   background-position: center top;
@@ -115,11 +115,11 @@ body.light-mode {
   background-repeat: no-repeat;
 }
 @media (min-width: 960px) {
-  body.light-mode {
+  body.light-mode:not(.is-song-page) {
     background-image: url("../images/bg-desktop-light.jpg");
   }
 }
-body:not(.light-mode) {
+body:not(.light-mode):not(.is-song-page) {
   background-image: url("../images/bg-mobile-dark.jpg");
   background-size: cover;
   background-position: center top;
@@ -127,7 +127,7 @@ body:not(.light-mode) {
   background-repeat: no-repeat;
 }
 @media (min-width: 960px) {
-  body:not(.light-mode) {
+  body:not(.light-mode):not(.is-song-page) {
     background-image: url("../images/bg-desktop-dark.jpg");
   }
 }
