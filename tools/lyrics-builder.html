@@ -220,12 +220,14 @@
 <div class="panel">
   <h2>④ 產生程式碼</h2>
   <div class="toolbar">
-    <button class="primary" id="btn-generate">產生程式碼</button>
+    <button id="btn-generate">產生程式碼</button>
     <button id="btn-copy">複製到剪貼簿</button>
-    <button id="btn-save">儲存回 data.js</button>
+    <button class="primary" id="btn-save">💾 儲存回 data.js</button>
     <span class="copy-msg" id="copy-msg"></span>
   </div>
-  <p class="hint" style="margin-top:-4px">「儲存回 data.js」會直接改本機的 data.js 檔案（先按上面「產生程式碼」才有內容可以存），存檔前會自動備份一份 <code>data.js.bak</code>。存完記得照 README 用 TortoiseGit commit + push 才會真的發布到網站上。</p>
+  <p class="hint" style="margin-top:-4px">先按「產生程式碼」，再按「💾 儲存回 data.js」：<br>
+    ・如果最上面「🌐 GitHub 存檔設定」已填好並測試連線成功 → 會直接 commit 到 GitHub，幾秒後網站就會更新，<b>不用開 TortoiseGit</b>。<br>
+    ・如果沒填 GitHub 設定 → 只有用「啟動本機預覽.bat」開這個頁面時才能存到本機 <code>data.js</code>（會自動備份一份 <code>data.js.bak</code>），存完要照 README 用 TortoiseGit commit + push 才會發布到網站上；直接雙擊 html 或用手機/GitHub Pages 開，這個模式會存檔失敗。</p>
   <textarea id="export-output" readonly placeholder="按「產生程式碼」後，這裡會出現可以直接貼進 data.js 的內容"></textarea>
 </div>
 
