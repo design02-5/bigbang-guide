@@ -599,6 +599,24 @@
     if (!code) { alert("請先按「產生程式碼」"); return; }
     const id = document.getElementById("f-id").value.trim();
     if (!id) { alert("請先填 id"); return; }
+
+    /* 防呆：存檔前比對「data.js 裡這首歌目前的句數」跟「這次要存的句數」，
+       避免像之前一樣，換 YouTube ID 時忘記先用上面「選擇要修改的歌」匯入舊歌詞，
+       結果整首歌被洗成只剩 1 個空白行。句數變少才需要特別跳出來確認，變多或不變都不管。 */
+    const existing = songList.find((s) => s.id === id);
+    if (existing) {
+      const oldCount = (existing.code.match(/original:/g) || []).length;
+      const newCount = (code.match(/original:/g) || []).length;
+      if (oldCount > 0 && newCount < oldCount) {
+        const ok = confirm(
+          `⚠️ 存檔警告：data.js 裡「${existing.title || id}」目前有 ${oldCount} 句歌詞，\n` +
+          `但這次要存的只有 ${newCount} 句，看起來可能忘記先按上面「選擇要修改的歌」匯入舊歌詞！\n\n` +
+          `確定要用這 ${newCount} 句覆蓋掉原本的 ${oldCount} 句嗎？`
+        );
+        if (!ok) return;
+      }
+    }
+
     const msg = document.getElementById("copy-msg");
     const btn = document.getElementById("btn-save");
     btn.disabled = true;
