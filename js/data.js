@@ -233,6 +233,7 @@ const SONGS = [
       { time: 222.4, original: "**다 같이 돌자 YE YE YE**", romaji: "**da gachi dolja YE YE YE**", zh: "**大家一起瘋吧**", kongEr: "", chant: "call" },
       { time: 225.7, original: "다 같이 가자", romaji: "da gachi gaja", zh: "大家一起走吧", kongEr: "", chant: null },
       { time: 228.5, original: "**WOW FANTASTIC BABY**", romaji: "", zh: "**WOW FANTASTIC BABY**", kongEr: "", chant: "call" },
+      { time: 231.7, original: "", romaji: "", zh: "", kongEr: "", chant: null },
     ],
   },
   {
