@@ -495,8 +495,9 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
 .strip-nav--next svg { transform: scaleX(-1); }
 .strip-nav:hover { border-color: var(--text); color: var(--text); }
 #strip-select {
-  flex: 1;
-  min-width: 0;
+  flex: 0 1 auto;
+  width: auto;
+  max-width: min(320px, 100%);
   padding: 9px 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
