@@ -21,7 +21,7 @@
 }
 
 body.light-mode {
-  --bg: #f4f2ec;
+  --bg: #f5f5f7;
   --bg-elevated: #ffffff;
   --bg-elevated-2: #ebe8e0;
   --text: #121110;
@@ -473,31 +473,38 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
 }
 .song-top-bar h1 { flex: 1; font-size: 18px; margin: 0; }
 
-/* 橫向可滑動的歌曲號碼列，取代彈窗選歌 */
+/* 選歌：上一首／下一首箭頭 + 歌名下拉選單，取代原本一長排數字（歌變多後橫向捲動很難用） */
 .song-strip {
   display: flex;
+  align-items: center;
   gap: 8px;
-  overflow-x: auto;
   padding: 2px 2px 16px;
-  scrollbar-width: thin;
 }
-.song-strip::-webkit-scrollbar { height: 4px; }
-.strip-chip {
+.strip-nav {
   flex: none;
   width: 38px;
   height: 38px;
   border-radius: 50%;
   border: 1px solid var(--border);
   color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.strip-chip:hover { border-color: var(--text); color: var(--text); }
-.strip-chip.active {
-  background: var(--accent-strong);
-  color: var(--accent-ink);
-  border-color: var(--accent-strong);
+.strip-nav svg { width: 16px; height: 16px; }
+.strip-nav--next svg { transform: scaleX(-1); }
+.strip-nav:hover { border-color: var(--text); color: var(--text); }
+#strip-select {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .video-wrap {
@@ -538,10 +545,10 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
   border-color: var(--text);
 }
 .lyric-line .chant-tag { margin-bottom: 4px; }
-.lyric-line .original { font-size: 15px; color: var(--text); }
-.lyric-line .romaji { font-size: 12px; color: var(--accent-strong); margin-top: 2px; }
-.lyric-line .zh { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
-.lyric-line .kong-er { font-size: 12px; color: var(--chant-cheer); margin-top: 2px; font-style: italic; }
+.lyric-line .original { font-size: 18px; color: var(--text); }
+.lyric-line .romaji { font-size: 14px; color: var(--accent-strong); margin-top: 3px; }
+.lyric-line .zh { font-size: 16px; color: var(--text-muted); margin-top: 4px; }
+.lyric-line .kong-er { font-size: 14px; color: var(--chant-cheer); margin-top: 3px; font-style: italic; }
 .chant-mark.call { color: var(--chant-call); }
 .chant-mark.cheer { color: var(--chant-cheer); }
 .lyric-line.simple-mode .zh { display: none; }
@@ -563,6 +570,7 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
   font-size: 12px;
   font-weight: 700;
 }
+.edit-mode-banner-actions { display: flex; gap: 8px; flex: none; }
 .edit-mode-banner button {
   padding: 4px 12px;
   border-radius: 999px;
@@ -605,6 +613,36 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
   background: var(--bg-elevated);
   color: var(--text);
 }
+.yt-id-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--chant-cheer);
+}
+.yt-id-edit label { font-size: 11px; color: var(--text-muted); }
+.yt-id-edit input {
+  font: inherit;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-strong);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+.add-line-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.add-line-btn:hover { border-color: var(--chant-cheer); color: var(--chant-cheer); }
 
 /* 顯示設定：手機懸浮在角落（歌詞太長也點得到）；寬螢幕改成貼在影片下方，避免蓋住播放器 */
 .display-settings {
@@ -717,11 +755,11 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
 body.is-song-page #app { max-width: 880px; }
 
 @media (min-width: 960px) {
-  body.is-song-page #app { max-width: 1600px; }
+  body.is-song-page #app { max-width: 2200px; padding: 0 24px 80px; }
   .song-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
-    gap: 32px;
+    grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr);
+    gap: 28px;
     align-items: start;
   }
   .song-lyrics-panel {

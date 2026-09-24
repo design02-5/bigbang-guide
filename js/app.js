@@ -119,13 +119,18 @@ function afterRender(route) {
     wireGuideControls();
   } else if (route.name === "song") {
     const song = SONGS.find((s) => s.id === route.id) || SONGS[0];
+    const idx = SONGS.findIndex((s) => s.id === song.id);
+    const prev = SONGS[(idx <= 0 ? SONGS.length : idx) - 1];
+    const next = SONGS[(idx + 1) % SONGS.length];
     renderLyricsList(song);
     setupPlayer(song);
     wireLyricsClick();
     wireLyricsEdit(song);
+    wireAddLine(song);
+    wireYoutubeIdEdit(song);
     wireEditModeBanner();
     wireToolbar(song);
-    wireSongStrip();
+    wireSongStrip(prev, next);
     wireSettingsPanel();
   }
 }
@@ -334,7 +339,7 @@ function updateCountdownBox() {
 }
 
 /* ===== 應援指南（歌曲清單） ===== */
-let guideState = { search: "", categories: [] };
+let guideState = { search: "", category: null };
 function getAllCategories() {
   const set = new Set();
   SONGS.forEach((s) => (s.categories || []).forEach((c) => set.add(c)));
@@ -355,9 +360,9 @@ function renderGuide() {
       <label for="song-search">搜尋歌曲</label>
       <input id="song-search" type="text" placeholder="輸入曲名..." value="${escapeHtml(guideState.search)}">
     </div>
-    <div class="filter-bar" role="group" aria-label="分類篩選（可多選）">
-      <button class="filter-default" data-filter-default aria-pressed="${guideState.categories.length === 0}">預設</button>
-      ${allCategories.map((c) => `<button class="filter-category" data-category="${escapeHtml(c)}" aria-pressed="${guideState.categories.includes(c)}">${escapeHtml(c)}</button>`).join("")}
+    <div class="filter-bar" role="group" aria-label="分類篩選（單選）">
+      <button class="filter-default" data-filter-default aria-pressed="${guideState.category === null}">預設</button>
+      ${allCategories.map((c) => `<button class="filter-category" data-category="${escapeHtml(c)}" aria-pressed="${guideState.category === c}">${escapeHtml(c)}</button>`).join("")}
     </div>
     <div class="song-count" id="song-count"></div>
     <ul class="song-list" id="song-list"></ul>
@@ -373,8 +378,8 @@ function getFilteredSortedSongs() {
     const q = guideState.search.trim().toLowerCase();
     list = list.filter((s) => s.title.toLowerCase().includes(q) || (s.titleOriginal || "").toLowerCase().includes(q));
   }
-  if (guideState.categories.length) {
-    list = list.filter((s) => (s.categories || []).some((c) => guideState.categories.includes(c)));
+  if (guideState.category) {
+    list = list.filter((s) => (s.categories || []).includes(guideState.category));
   }
   list.sort((a, b) => a.order - b.order);
   return list;
@@ -398,17 +403,17 @@ function wireGuideControls() {
     renderSongList();
   });
   document.querySelector(".filter-default").addEventListener("click", () => {
-    guideState.categories = [];
+    guideState.category = null;
     document.querySelectorAll(".filter-bar button").forEach((b) => b.setAttribute("aria-pressed", b.hasAttribute("data-filter-default")));
     renderSongList();
   });
   document.querySelectorAll(".filter-category").forEach((btn) => {
     btn.addEventListener("click", () => {
       const c = btn.dataset.category;
-      const i = guideState.categories.indexOf(c);
-      if (i === -1) guideState.categories.push(c); else guideState.categories.splice(i, 1);
-      btn.setAttribute("aria-pressed", guideState.categories.includes(c));
-      document.querySelector(".filter-default").setAttribute("aria-pressed", guideState.categories.length === 0);
+      guideState.category = guideState.category === c ? null : c;
+      document.querySelectorAll(".filter-bar button").forEach((b) => {
+        b.setAttribute("aria-pressed", b.hasAttribute("data-filter-default") ? guideState.category === null : b.dataset.category === guideState.category);
+      });
       renderSongList();
     });
   });
@@ -432,9 +437,13 @@ function saveToggleState() {
 
 const playerState = { ytPlayer: null, pollTimer: null };
 
-function songStripHtml(currentId) {
+function songStripHtml(currentId, prev, next) {
   return `<div class="song-strip" id="song-strip">
-    ${SONGS.map((s) => `<button class="strip-chip ${s.id === currentId ? "active" : ""}" data-song-id="${s.id}" title="${escapeHtml(s.title)}">${String(s.order).padStart(2, "0")}</button>`).join("")}
+    <button class="strip-nav" id="strip-prev" title="上一首：${escapeHtml(prev.title)}">${ICONS.back}</button>
+    <select id="strip-select" aria-label="選擇歌曲">
+      ${SONGS.map((s) => `<option value="${s.id}" ${s.id === currentId ? "selected" : ""}>${String(s.order).padStart(2, "0")} ${escapeHtml(s.title)}</option>`).join("")}
+    </select>
+    <button class="strip-nav strip-nav--next" id="strip-next" title="下一首：${escapeHtml(next.title)}">${ICONS.back}</button>
   </div>`;
 }
 
@@ -447,8 +456,11 @@ function renderSong(id) {
   return `
     ${isEditModeOn() ? `
       <div class="edit-mode-banner">
-        ✏️ 編輯模式：點歌詞旁的鉛筆改字，改完點別的地方（讓欄位失去焦點）就會自動存回 GitHub
-        <button id="btn-exit-edit">退出編輯模式</button>
+        ✏️ 編輯模式：點鉛筆改字、影片下方可改YouTube ID，改完點別的地方（讓欄位失去焦點）就會自動存回 GitHub
+        <div class="edit-mode-banner-actions">
+          <button id="btn-add-line">＋ 新增一句歌詞</button>
+          <button id="btn-exit-edit">退出編輯模式</button>
+        </div>
       </div>
       <div id="edit-save-toast" class="edit-save-toast" hidden></div>
     ` : ""}
@@ -457,12 +469,18 @@ function renderSong(id) {
       <h1>${escapeHtml(song.title)}</h1>
       ${themeToggleHtml()}
     </div>
-    ${songStripHtml(song.id)}
+    ${songStripHtml(song.id, prev, next)}
     <div class="song-layout">
       <div class="song-media">
         <div class="video-wrap" id="video-wrap">
-          ${song.youtubeId ? `<div id="yt-player"></div>` : `<div class="video-empty">尚未設定影片 ID<br>請在 data.js 幫「${escapeHtml(song.title)}」填入 youtubeId</div>`}
+          ${song.youtubeId ? `<div id="yt-player"></div>` : `<div class="video-empty">尚未設定影片 ID<br>${isEditModeOn() ? "在下面欄位輸入 YouTube 影片 ID" : `請在 data.js 幫「${escapeHtml(song.title)}」填入 youtubeId`}</div>`}
         </div>
+        ${isEditModeOn() ? `
+          <div class="yt-id-edit">
+            <label for="yt-id-input">YouTube 影片 ID（網址 v= 後面那串）</label>
+            <input type="text" id="yt-id-input" value="${escapeHtml(song.youtubeId || "")}" placeholder="例：dQw4w9WgXcQ">
+          </div>
+        ` : ""}
         <div class="sync-hint"><span class="dot"></span>點選歌詞跳至影片位置，醒目歌詞隨影片同步。</div>
         <div class="legend small">${song.chantTypes.map(legendItem).join("")}</div>
         <div class="display-settings" id="display-settings">
@@ -603,6 +621,48 @@ function wireLyricsEdit(song) {
     saveEditedLine(song, index, fields);
   });
 }
+function wireAddLine(song) {
+  const btn = document.getElementById("btn-add-line");
+  if (!btn || !isEditModeOn()) return;
+  btn.addEventListener("click", () => {
+    const lastTime = song.lyrics.length ? song.lyrics[song.lyrics.length - 1].time : 0;
+    song.lyrics.push({ time: Math.round((lastTime + 3) * 10) / 10, original: "", romaji: "", zh: "", kongEr: "", chant: null });
+    editingLineIndex = song.lyrics.length - 1;
+    renderLyricsList(song);
+    const el = document.getElementById("lyrics-list");
+    const li = el && el.querySelector(`.lyric-line-edit[data-edit-index="${editingLineIndex}"]`);
+    if (li) li.scrollIntoView({ block: "center", behavior: "smooth" });
+    const input = li && li.querySelector("input");
+    if (input) input.focus();
+  });
+}
+function wireYoutubeIdEdit(song) {
+  const input = document.getElementById("yt-id-input");
+  if (!input || !isEditModeOn()) return;
+  input.addEventListener("focusout", async () => {
+    const newId = input.value.trim();
+    if (newId === (song.youtubeId || "")) return;
+    song.youtubeId = newId;
+    const wrap = document.getElementById("video-wrap");
+    if (wrap) {
+      wrap.innerHTML = song.youtubeId ? `<div id="yt-player"></div>` : `<div class="video-empty">尚未設定影片 ID<br>在下面欄位輸入 YouTube 影片 ID</div>`;
+    }
+    setupPlayer(song);
+    if (!ghEnabled()) {
+      showEditSaveToast("⚠️ 還沒設定 GitHub 存檔，這次改的影片只留在畫面上，重新整理就不見了", "error");
+      alert("還沒設定 GitHub 存檔（先去 tools/lyrics-builder.html 設定一次帳號/repo/token），這次改的影片只留在畫面上，重新整理就不見了。");
+      return;
+    }
+    showEditSaveToast("存檔中…", "saving");
+    try {
+      await ghSaveSong(song, `更新影片：${song.title}`);
+      showEditSaveToast("✓ 影片 ID 已存回 GitHub", "ok");
+    } catch (e) {
+      showEditSaveToast("✕ 存檔失敗：" + e.message, "error");
+      alert("存檔失敗：" + e.message);
+    }
+  });
+}
 function wireEditModeBanner() {
   const btn = document.getElementById("btn-exit-edit");
   if (btn) btn.addEventListener("click", exitEditMode);
@@ -623,15 +683,15 @@ function wireToolbar(song) {
     });
   });
 }
-function wireSongStrip() {
+function wireSongStrip(prev, next) {
   const strip = document.getElementById("song-strip");
   if (!strip) return;
-  strip.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-song-id]");
-    if (btn) location.hash = "#/song/" + encodeURIComponent(btn.dataset.songId);
-  });
-  const active = strip.querySelector(".strip-chip.active");
-  if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
+  const select = document.getElementById("strip-select");
+  if (select) select.addEventListener("change", () => { location.hash = "#/song/" + encodeURIComponent(select.value); });
+  const prevBtn = document.getElementById("strip-prev");
+  if (prevBtn) prevBtn.addEventListener("click", () => { location.hash = "#/song/" + encodeURIComponent(prev.id); });
+  const nextBtn = document.getElementById("strip-next");
+  if (nextBtn) nextBtn.addEventListener("click", () => { location.hash = "#/song/" + encodeURIComponent(next.id); });
 }
 function wireSettingsPanel() {
   const toggle = document.getElementById("settings-toggle");
