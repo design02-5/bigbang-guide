@@ -618,6 +618,18 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
   background: var(--bg-elevated);
   color: var(--text);
 }
+.delete-line-btn {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+.delete-line-btn:hover { background: var(--danger); color: #fff; }
 .yt-id-edit {
   display: flex;
   flex-direction: column;

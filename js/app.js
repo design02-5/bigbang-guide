@@ -27,6 +27,7 @@ function exitEditMode() {
   location.href = location.pathname + location.hash;
 }
 let editingLineIndex = null; // 歌曲頁目前正在編輯哪一句（null = 沒有在編輯）
+let suppressAutoSave = false; // 刪除這句時，跳出 confirm() 對話框會讓欄位失焦，這段時間先擋掉自動存檔
 
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
@@ -513,6 +514,7 @@ function lyricLineHtml(line, index) {
           <input type="text" data-field="romaji" value="${escapeHtml(line.romaji)}" placeholder="羅馬拼音">
           <input type="text" data-field="zh" value="${escapeHtml(line.zh)}" placeholder="中文">
           <input type="text" data-field="kongEr" value="${escapeHtml(line.kongEr)}" placeholder="空耳">
+          <button type="button" class="delete-line-btn" data-delete-index="${index}">🗑 刪除這句</button>
         </div>
       </li>`;
   }
@@ -564,6 +566,27 @@ function showEditSaveToast(text, kind) {
     editSaveToastTimer = setTimeout(() => { el.hidden = true; }, 3000);
   }
 }
+async function deleteLine(song, index) {
+  if (!song.lyrics[index]) return;
+  if (!confirm(`確定要刪除第 ${index + 1} 句歌詞嗎？這個動作不能復原。`)) return;
+  song.lyrics.splice(index, 1);
+  editingLineIndex = null;
+  renderLyricsList(song); // 先樂觀更新畫面，不等網路回應
+
+  if (!ghEnabled()) {
+    showEditSaveToast("⚠️ 還沒設定 GitHub 存檔，這次刪除只留在畫面上，重新整理就恢復了", "error");
+    alert("還沒設定 GitHub 存檔（先去 tools/lyrics-builder.html 設定一次帳號/repo/token），這次刪除只留在畫面上，重新整理就恢復了。");
+    return;
+  }
+  showEditSaveToast("存檔中…", "saving");
+  try {
+    await ghSaveSong(song, `刪除歌詞：${song.title} 第 ${index + 1} 句`);
+    showEditSaveToast("✓ 已刪除並存回 GitHub", "ok");
+  } catch (e) {
+    showEditSaveToast("✕ 存檔失敗：" + e.message, "error");
+    alert("存檔失敗：" + e.message);
+  }
+}
 async function saveEditedLine(song, index, fields) {
   const line = song.lyrics[index];
   if (!line) return;
@@ -593,8 +616,21 @@ function wireLyricsEdit(song) {
   const el = document.getElementById("lyrics-list");
   if (!el || !isEditModeOn()) return;
 
+  // 按下刪除鈕時先擋掉搶焦點，不然欄位的 focusout 會搶先把（要被刪掉的）舊內容存回去
+  el.addEventListener("mousedown", (e) => {
+    if (e.target.closest("[data-delete-index]")) e.preventDefault();
+  });
+
   // 用 capture 階段攔截鉛筆點擊，搶在 wireLyricsClick 的「點歌詞跳影片位置」之前處理
   el.addEventListener("click", (e) => {
+    const delBtn = e.target.closest("[data-delete-index]");
+    if (delBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      suppressAutoSave = true;
+      deleteLine(song, Number(delBtn.dataset.deleteIndex)).finally(() => { suppressAutoSave = false; });
+      return;
+    }
     const pencil = e.target.closest("[data-edit-pencil]");
     if (!pencil) return;
     e.preventDefault();
@@ -606,6 +642,7 @@ function wireLyricsEdit(song) {
   }, true);
 
   el.addEventListener("focusout", (e) => {
+    if (suppressAutoSave) return;
     const group = e.target.closest(".line-edit-fields");
     if (!group) return;
     if (group.contains(e.relatedTarget)) return; // 還在同一組欄位裡切換，不算離開
