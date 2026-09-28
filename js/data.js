@@ -160,7 +160,7 @@ const SONGS = [
       { time: 4, original: "WE GON' PARTY LIKE ", romaji: "", zh: "我們要像這樣狂歡", kongEr: "WE GON' PARTY LIKE", chant: null },
       { time: 6, original: "리리리라라라", romaji: "RIRIRI LALALA", zh: "哩哩哩啦啦啦", kongEr: "哩哩哩啦啦啦", chant: null },
       { time: 8, original: "맘을 열어라", romaji: "mameul yeoleora", zh: "敞開你的心", kongEr: "嘛悶 郵囉拉", chant: null },
-      { time: 9, original: "머릴 비워라", romaji: "meoril biwora", zh: "掏空你的腦袋", kongEr: "摩里 鼻沃拉", chant: null },
+      { time: 10, original: "머릴 비워라", romaji: "meoril biwora", zh: "掏空你的腦袋", kongEr: "摩里 鼻沃拉", chant: null },
       { time: 21.2, original: "불을 지펴라 리리리라라라", romaji: "bureul jipyeora ririllallalla", zh: "點燃心中的火焰 RIRIRILALALA", kongEr: "", chant: null },
       { time: 25.2, original: "정답은 묻지 말고 그대로 받아들여 느낌대로 가", romaji: "jeongdabeun mutji malgo geudaero badadeulyeo neukkimdaelo ga", zh: "不要問答案 就只要接受 跟著感覺走吧", kongEr: "", chant: null },
       { time: 29.2, original: "ALRIGHT", romaji: "", zh: "ALRIGHT", kongEr: "", chant: null },
