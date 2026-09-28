@@ -151,7 +151,7 @@ const SONGS = [
     order: 1,
     title: "FANTASTIC BABY",
     titleOriginal: "",
-    youtubeId: "5eiytN0_YR8",
+    youtubeId: "AAbokV76tkU",
     chantTypes: ["call", "cheer"],
     categories: ["舞曲"],
     lyrics: [
