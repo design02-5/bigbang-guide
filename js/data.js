@@ -178,7 +178,7 @@ const SONGS = [
       { time: 55.5, original: "이 난장판에 HEY", romaji: "i nanjangpane HEY", zh: "在這場亂仗中 HEY", kongEr: "伊 拿張攀內 hey", chant: "call" },
       { time: 57.2, original: "끝판 왕 차례 HEY", romaji: "kkeutpan wang chalye HEY", zh: "最後 該國王登場了 HEY", kongEr: "克盤 汪 恰咧 hey", chant: "call" },
       { time: 59, original: "땅을 흔들고 3분으론 불충분한 RACE", romaji: "ttangeul heundeulgo 3buneuron bulchungbunhan RACE", zh: "地板在搖晃 3分鐘 不足夠的RACE", kongEr: "當恩 哼的勾 三補呢 隆不充補漢", chant: null },
-      { time: 62.5, original: "WAIT 분위기는 과열 HUH", romaji: "WAIT bunwigineun gwayeol HUH", zh: "WAIT 氣氛超越沸點 HUH", kongEr: "威 步威幾呢 拐優", chant: null },
+      { time: 62.5, original: "WAIT 분위기는 과열 HUH", romaji: "WAIT bunwigineun gwayeol HUH", zh: "WAIT 氣氛超越沸點 HUH", kongEr: "威 步威幾呢 拐 賀", chant: null },
       { time: 73, original: "CATCH ME ON FIRE HUH", romaji: "", zh: "CATCH ME ON FIRE HUH", kongEr: "", chant: null },
       { time: 75.2, original: "**진짜가 나타났다 NANANANANA**", romaji: "**jinjjaga natanatda NANANANANA**", zh: "**主角出現了**", kongEr: "", chant: "call" },
       { time: 79.2, original: "**하나부터 열까지 모든 게 다 한수위(翰數wi)**", romaji: "**hanabuteo yeolkkaji modeun ge da hansuwi**", zh: "**從一到十 全都高人一等**", kongEr: "", chant: "call" },
