@@ -166,7 +166,7 @@ const SONGS = [
       { time: 20.5, original: "정답은 묻지 말고 그대로 받아들여", romaji: "jeongdabeun mutji malgo geudaero badadeulyeo neukkimdaelo ga", zh: "別問什麼才是標準答案 坦然接受就對了", kongEr: "匆大奔 木屐 罵勾 苦對囉 爸打逗留", chant: null },
       { time: 24.6, original: "느낌대로 가 Alright~", romaji: "", zh: "順著感覺走 沒問題", kongEr: "內ki對囉 嘎 Alright~", chant: null },
       { time: 27.8, original: "하늘을 마주하고 두 손을 다 위로", romaji: "haneureul majuhago du soneul da wilo", zh: "迎向廣闊的天空 雙手高高舉起", kongEr: "漢內留 罵句哈勾 肚 所弄 大 為囉", chant: null },
-      { time: 31, original: "저 위로 날뛰고 싶어 OH", romaji: "jeo wilo nalttwigo sipeo OH", zh: "好想在那天際狂歡撒野 噢", kongEr: "就 為囉 吶踢勾 希波 喔", chant: null },
+      { time: 32, original: "저 위로 날뛰고 싶어 OH", romaji: "jeo wilo nalttwigo sipeo OH", zh: "好想在那天際狂歡撒野 噢", kongEr: "就 為囉 吶踢勾 希波 喔", chant: null },
       { time: 39.4, original: "**NANANANANA NANANANANA**", romaji: "", zh: "**NANANANANA NANANANANA**", kongEr: "", chant: "call" },
       { time: 41.6, original: "**WOW FANTASTIC BABY**", romaji: "", zh: "**WOW FANTASTIC BABY**", kongEr: "", chant: "call" },
       { time: 43.8, original: "DANCE", romaji: "", zh: "DANCE", kongEr: "", chant: null },
