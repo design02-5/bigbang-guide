@@ -45,14 +45,16 @@ function wrapWords(text) {
  * ——同一句裡「只有某幾個字是應援詞/大合唱、其他是正常歌詞」時用這個標記法。
  */
 function renderChantText(text, chantKey) {
-  // 只有文字裡有 **標記** 的部分才上色；沒有 ** 就整句維持正常顏色，
-  // chant 這時只用來決定右上角的應援標籤（大合唱／應援詞），不會讓整句變色。
-  if (!chantKey || !text.includes("**")) return wrapWords(text);
+  // 只有文字裡有 **標記** 的部分才上色；沒有 ** 就整句維持正常顏色。
+  // 這句本身沒設定應援類型（chant 是 null）時，** 部分預設用「應援詞」的藍色，
+  // 這樣就算這句沒勾大合唱/應援詞，手動打 ** 還是能標色，不會整段一直是原色也不會殘留星號。
+  if (!text.includes("**")) return wrapWords(text);
+  const colorKey = chantKey || "cheer";
   const parts = text.split(/\*\*(.+?)\*\*/g);
   return parts.map((part, i) => {
     if (!part) return "";
     return i % 2 === 1
-      ? `<span class="chant-mark ${chantKey}">${wrapWords(part)}</span>`
+      ? `<span class="chant-mark ${colorKey}">${wrapWords(part)}</span>`
       : wrapWords(part);
   }).join("");
 }
@@ -595,6 +597,7 @@ async function saveEditedLine(song, index, fields) {
   line.romaji = fields.romaji;
   line.zh = fields.zh;
   line.kongEr = fields.kongEr;
+  song.lyrics.sort((a, b) => a.time - b.time); // 改過秒數後重新照時間排序，不然新插入的句子會卡在原本位置
   editingLineIndex = null;
   renderLyricsList(song); // 先樂觀更新畫面，不等網路回應
 

@@ -553,7 +553,7 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
 .lyric-line .original { font-size: 18px; color: var(--text); }
 .lyric-line .romaji { font-size: 14px; color: var(--accent-strong); margin-top: 3px; }
 .lyric-line .zh { font-size: 16px; color: var(--text-muted); margin-top: 4px; }
-.lyric-line .kong-er { font-size: 14px; color: var(--chant-cheer); margin-top: 3px; font-style: italic; }
+.lyric-line .kong-er { font-size: 14px; color: var(--text-muted); margin-top: 3px; }
 .chant-mark.call { color: var(--chant-call); }
 .chant-mark.cheer { color: var(--chant-cheer); }
 .lyric-line.simple-mode .zh { display: none; }
