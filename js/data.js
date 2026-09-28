@@ -180,7 +180,7 @@ const SONGS = [
       { time: 59, original: "땅을 흔들고 3분으론 불충분한 RACE", romaji: "ttangeul heundeulgo 3buneuron bulchungbunhan RACE", zh: "地板在搖晃 3分鐘 不足夠的RACE", kongEr: "當恩 哼的勾 三補呢 隆不充補漢", chant: null },
       { time: 62.5, original: "WAIT 분위기는 과열 HUH", romaji: "WAIT bunwigineun gwayeol HUH", zh: "WAIT 氣氛超越沸點 HUH", kongEr: "威 步威幾呢 拐 賀", chant: null },
       { time: 64.8, original: "CATCH ME ON FIRE HUH", romaji: "", zh: "CATCH ME ON FIRE HUH", kongEr: "CATCH ME ON FIRE HUH", chant: null },
-      { time: 66.6, original: "**진짜가 나타났다 NANANANANA**", romaji: "**jinjjaga natanatda NANANANANA**", zh: "**真正的高手登場了**", kongEr: "金價嘎 拿打拿搭 拿拿拿拿", chant: "call" },
+      { time: 66.6, original: "진짜가 나타났다 **NANANANANA**", romaji: "jinjjaga natanatda **NANANANANA**", zh: "真正的高手登場了", kongEr: "金價嘎 拿打拿搭 **拿拿拿拿**", chant: "call" },
       { time: 79.2, original: "**하나부터 열까지 모든 게 다 한수위(翰數wi)**", romaji: "**hanabuteo yeolkkaji modeun ge da hansuwi**", zh: "**從一到十 全都高人一等**", kongEr: "", chant: "call" },
       { time: 83.2, original: "**모래 벌판 위를 미친 듯이 뛰어봐도 거뜬한 우리(翰物理)**", romaji: "**mole beolpan wireul michin deusi ttwieobwado geotteunhan uri**", zh: "**即使在廣闊沙地上瘋狂跳躍也一派輕鬆的我們**", kongEr: "", chant: "call" },
       { time: 87.2, original: "**하늘은 충분히(搶本魚-台語) 너무나 푸르니(噗ㄌ你)까**", romaji: "**haneureun chungbunhi neomuna puleunikka**", zh: "**因為天空是如此蔚藍**", kongEr: "", chant: "call" },
