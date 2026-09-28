@@ -157,7 +157,7 @@ const SONGS = [
     lyrics: [
       { time: 5, original: "여기 붙어라", romaji: "yeogi buteora", zh: "靠過來這裡吧", kongEr: "喲基 布透拉", chant: null },
       { time: 7, original: "WE GON' PARTY LIKE ", romaji: "", zh: "我們要像這樣狂歡", kongEr: "WE GON' PARTY LIKE", chant: null },
-      { time: 8, original: "모두 모여라", romaji: "modu moyeora", zh: "全都聚集過來吧", kongEr: "摩度 摩郵拉", chant: null },
+      { time: 7, original: "모두 모여라", romaji: "modu moyeora", zh: "全都聚集過來吧", kongEr: "摩度 摩郵拉", chant: null },
       { time: 8, original: "맘을 열어라", romaji: "mameul yeoleora", zh: "敞開你的心", kongEr: "馬們 有囉拉", chant: null },
       { time: 9, original: "리리리라라라", romaji: "RIRIRI LALALA", zh: "哩哩哩啦啦啦", kongEr: "哩哩哩啦啦啦", chant: null },
       { time: 11, original: "머릴 비워라", romaji: "meoril biwora", zh: "掏空你的腦袋", kongEr: "馬哩 逼波拉", chant: null },
