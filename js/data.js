@@ -177,7 +177,7 @@ const SONGS = [
       { time: 53.5, original: "**WOW FANTASTIC BABY**", romaji: "**WOW FANTASTIC BABY**", zh: "**哇 真是太狂了 寶貝**", kongEr: "**哇 粉太濕 北鼻**", chant: "call" },
       { time: 55.5, original: "이 난장판에 HEY", romaji: "i nanjangpane HEY", zh: "在這場亂仗中 HEY", kongEr: "伊 拿張攀內 hey", chant: "call" },
       { time: 57.2, original: "끝판 왕 차례 HEY", romaji: "kkeutpan wang chalye HEY", zh: "最後 該國王登場了 HEY", kongEr: "克盤 汪 恰咧 hey", chant: "call" },
-      { time: 59, original: "땅을 흔들고 3분으론 불충분한 RACE", romaji: "ttangeul heundeulgo 3buneuron bulchungbunhan RACE", zh: "地板在搖晃 3分鐘 不足夠的RACE", kongEr: "噹類 混德勾 三補呢隆 不充補漢", chant: null },
+      { time: 59, original: "땅을 흔들고 3분으론 불충분한 RACE", romaji: "ttangeul heundeulgo 3buneuron bulchungbunhan RACE", zh: "地板在搖晃 3分鐘 不足夠的RACE", kongEr: "當恩 哼的勾 三補呢隆 不充補漢", chant: null },
       { time: 69, original: "WAIT 분위기는 과열 HUH", romaji: "WAIT bunwigineun gwayeol HUH", zh: "WAIT 氣氛超越沸點 HUH", kongEr: "", chant: null },
       { time: 73, original: "CATCH ME ON FIRE HUH", romaji: "", zh: "CATCH ME ON FIRE HUH", kongEr: "", chant: null },
       { time: 75.2, original: "**진짜가 나타났다 NANANANANA**", romaji: "**jinjjaga natanatda NANANANANA**", zh: "**主角出現了**", kongEr: "", chant: "call" },
