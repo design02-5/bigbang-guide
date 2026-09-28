@@ -179,7 +179,7 @@ const SONGS = [
       { time: 57.2, original: "끝판 왕 차례 HEY", romaji: "kkeutpan wang chalye HEY", zh: "最後 該國王登場了 HEY", kongEr: "克盤 汪 恰咧 hey", chant: "call" },
       { time: 59, original: "땅을 흔들고 3분으론 불충분한 RACE", romaji: "ttangeul heundeulgo 3buneuron bulchungbunhan RACE", zh: "地板在搖晃 3分鐘 不足夠的RACE", kongEr: "當恩 哼的勾 三補呢 隆不充補漢", chant: null },
       { time: 62.5, original: "WAIT 분위기는 과열 HUH", romaji: "WAIT bunwigineun gwayeol HUH", zh: "WAIT 氣氛超越沸點 HUH", kongEr: "威 步威幾呢 拐 賀", chant: null },
-      { time: 64.8, original: "CATCH ME ON FIRE HUH", romaji: "", zh: "CATCH ME ON FIRE HUH", kongEr: "", chant: null },
+      { time: 64.8, original: "CATCH ME ON FIRE HUH", romaji: "", zh: "CATCH ME ON FIRE HUH", kongEr: "CATCH ME ON FIRE HUH", chant: null },
       { time: 75.2, original: "**진짜가 나타났다 NANANANANA**", romaji: "**jinjjaga natanatda NANANANANA**", zh: "**主角出現了**", kongEr: "", chant: "call" },
       { time: 79.2, original: "**하나부터 열까지 모든 게 다 한수위(翰數wi)**", romaji: "**hanabuteo yeolkkaji modeun ge da hansuwi**", zh: "**從一到十 全都高人一等**", kongEr: "", chant: "call" },
       { time: 83.2, original: "**모래 벌판 위를 미친 듯이 뛰어봐도 거뜬한 우리(翰物理)**", romaji: "**mole beolpan wireul michin deusi ttwieobwado geotteunhan uri**", zh: "**即使在廣闊沙地上瘋狂跳躍也一派輕鬆的我們**", kongEr: "", chant: "call" },
