@@ -165,7 +165,7 @@ const SONGS = [
       { time: 18, original: "리리리 라라라", romaji: "RIRIRI LALALA", zh: "哩哩哩 啦啦啦", kongEr: "哩哩哩 啦啦啦", chant: null },
       { time: 20.5, original: "정답은 묻지 말고 그대로 받아들여", romaji: "jeongdabeun mutji malgo geudaero badadeulyeo neukkimdaelo ga", zh: "別問什麼才是標準答案 坦然接受就對了", kongEr: "匆大奔 木屐 罵勾 苦對囉 爸打逗留", chant: null },
       { time: 24.6, original: "느낌대로 가 Alright~", romaji: "", zh: "順著感覺走 沒問題", kongEr: "內ki對囉 嘎 Alright~", chant: null },
-      { time: 31.4, original: "하늘을 마주하고 두 손을 다 위로", romaji: "haneureul majuhago du soneul da wilo", zh: "對著天空 高舉起你的雙手", kongEr: "", chant: null },
+      { time: 31.4, original: "하늘을 마주하고 두 손을 다 위로", romaji: "haneureul majuhago du soneul da wilo", zh: "對著天空 高舉起你的雙手", kongEr: "哈奴類 嘛居哈勾 屠 孫類 搭 威漏", chant: null },
       { time: 35.4, original: "저 위로 날뛰고 싶어 OH", romaji: "jeo wilo nalttwigo sipeo OH", zh: "想朝向那高處瘋狂亂跳 OH", kongEr: "", chant: null },
       { time: 39.4, original: "**NANANANANA NANANANANA**", romaji: "", zh: "**NANANANANA NANANANANA**", kongEr: "", chant: "call" },
       { time: 41.6, original: "**WOW FANTASTIC BABY**", romaji: "", zh: "**WOW FANTASTIC BABY**", kongEr: "", chant: "call" },
