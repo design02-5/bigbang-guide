@@ -172,7 +172,7 @@ const SONGS = [
       { time: 40, original: "DANCE", romaji: "", zh: "DANCE", kongEr: "蛋濕", chant: null },
       { time: 43.5, original: "I WANNA DAN DAN DAN DAN DANCE", romaji: "I WANNA DAN DAN DAN DAN DANCE", zh: "跳舞吧 我想跳跳跳跳", kongEr: "愛忘了 蛋蛋蛋蛋 蛋濕", chant: null },
       { time: 46.8, original: "**FANTASTIC BABY**", romaji: "**FANTASTIC BABY**", zh: "**真是太狂了 寶貝**", kongEr: "**粉太濕 北鼻**", chant: "call" },
-      { time: 48, original: "DANCE", romaji: "", zh: "DANCE", kongEr: "", chant: null },
+      { time: 48, original: "DANCE", romaji: "", zh: "DANCE", kongEr: "蛋濕", chant: null },
       { time: 51, original: "I WANNA DAN DAN DAN DAN DANCE", romaji: "", zh: "I WANNA DAN DAN DAN DAN DANCE", kongEr: "", chant: null },
       { time: 53.5, original: "**WOW FANTASTIC BABY**", romaji: "", zh: "**WOW FANTASTIC BABY**", kongEr: "", chant: "call" },
       { time: 55, original: "**이 난장판에 HEY**", romaji: "**i nanjangpane HEY**", zh: "**在這場亂仗中 HEY**", kongEr: "", chant: "call" },
