@@ -174,7 +174,7 @@ const SONGS = [
       { time: 46.8, original: "**FANTASTIC BABY**", romaji: "**FANTASTIC BABY**", zh: "**真是太狂了 寶貝**", kongEr: "**粉太濕 北鼻**", chant: "call" },
       { time: 48, original: "DANCE", romaji: "", zh: "DANCE", kongEr: "蛋濕", chant: null },
       { time: 51, original: "I WANNA DAN DAN DAN DAN DANCE", romaji: "", zh: "跳舞吧 我想跳跳跳跳", kongEr: "愛忘了 蛋 蛋 蛋 蛋 蛋濕", chant: null },
-      { time: 53.5, original: "**WOW FANTASTIC BABY**", romaji: "**WOW FANTASTIC BABY**", zh: "", kongEr: "**哇 粉太濕 北鼻**", chant: "call" },
+      { time: 53.5, original: "**WOW FANTASTIC BABY**", romaji: "**WOW FANTASTIC BABY**", zh: "**哇 真是太狂了 寶貝**", kongEr: "**哇 粉太濕 北鼻**", chant: "call" },
       { time: 55, original: "**이 난장판에 HEY**", romaji: "**i nanjangpane HEY**", zh: "**在這場亂仗中 HEY**", kongEr: "", chant: "call" },
       { time: 61, original: "**끝판 왕 차례 HEY**", romaji: "**kkeutpan wang chalye HEY**", zh: "**最後 該國王登場了 HEY**", kongEr: "", chant: "call" },
       { time: 65, original: "땅을 흔들고 3분으론 불충분한 RACE", romaji: "ttangeul heundeulgo 3buneuron bulchungbunhan RACE", zh: "地板在搖晃 3分鐘 不足夠的RACE", kongEr: "", chant: null },
