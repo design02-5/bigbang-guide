@@ -162,7 +162,7 @@ const SONGS = [
       { time: 13, original: "맘을 열어라", romaji: "mameul yeoleora", zh: "敞開你的心", kongEr: "馬們 有囉拉", chant: null },
       { time: 15, original: "머릴 비워라", romaji: "meoril biwora", zh: "掏空你的腦袋", kongEr: "馬哩 逼波拉", chant: null },
       { time: 17, original: "불을 지펴라 리리리라라라", romaji: "bureul jipyeora ririllallalla", zh: "點燃心中的火焰 ", kongEr: "暴露 幾皮優拉", chant: null },
-      { time: 18, original: "리리리라라라", romaji: "", zh: "", kongEr: "", chant: null },
+      { time: 18, original: "리리리 라라라", romaji: "RIRIRI LALALA", zh: "", kongEr: "", chant: null },
       { time: 25.2, original: "정답은 묻지 말고 그대로 받아들여 느낌대로 가", romaji: "jeongdabeun mutji malgo geudaero badadeulyeo neukkimdaelo ga", zh: "不要問答案 就只要接受 跟著感覺走吧", kongEr: "", chant: null },
       { time: 29.2, original: "ALRIGHT", romaji: "", zh: "ALRIGHT", kongEr: "", chant: null },
       { time: 31.4, original: "하늘을 마주하고 두 손을 다 위로", romaji: "haneureul majuhago du soneul da wilo", zh: "對著天空 高舉起你的雙手", kongEr: "", chant: null },
