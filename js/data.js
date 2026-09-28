@@ -156,7 +156,7 @@ const SONGS = [
     categories: ["舞曲"],
     lyrics: [
       { time: 0, original: "여기 붙어라", romaji: "yeogi buteora", zh: "靠過來這裡吧", kongEr: "喲基 布透拉", chant: null },
-      { time: 3, original: "모두 모여라", romaji: "modu moyeora", zh: "全都聚集過來吧", kongEr: "摩度 摩郵拉", chant: null },
+      { time: 3, original: "모두 모여라", romaji: "modu moyeora", zh: "全都聚集過來吧", kongEr: "摩度 **摩郵拉**", chant: null },
       { time: 4, original: "WE GON' PARTY LIKE RIRIRILALALA", romaji: "", zh: "WE GON' PARTY LIKE RIRIRILALALA", kongEr: "", chant: null },
       { time: 13.2, original: "맘을 열어라", romaji: "mameul yeoleora", zh: "敞開你的心", kongEr: "", chant: null },
       { time: 17.2, original: "머릴 비워라", romaji: "meoril biwora", zh: "清除雜念 放空你的腦", kongEr: "", chant: null },
@@ -233,7 +233,7 @@ const SONGS = [
       { time: 222.4, original: "**다 같이 돌자 YE YE YE**", romaji: "**da gachi dolja YE YE YE**", zh: "**大家一起瘋吧**", kongEr: "", chant: "call" },
       { time: 225.7, original: "다 같이 가자", romaji: "da gachi gaja", zh: "大家一起走吧", kongEr: "", chant: null },
       { time: 228.5, original: "**WOW FANTASTIC BABY**", romaji: "", zh: "**WOW FANTASTIC BABY**", kongEr: "", chant: "call" },
-      { time: 5, original: "리리리라라라", romaji: "", zh: "哩哩哩啦啦啦", kongEr: "哩哩哩啦啦啦", chant: null },
+      { time: 0, original: "리리리라라라", romaji: "", zh: "哩哩哩啦啦啦", kongEr: "哩哩哩啦啦啦", chant: null },
     ],
   },
   {
