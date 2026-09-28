@@ -163,7 +163,7 @@ const SONGS = [
       { time: 15, original: "머릴 비워라", romaji: "meoril biwora", zh: "掏空你的腦袋", kongEr: "馬哩 逼波拉", chant: null },
       { time: 17, original: "불을 지펴라 ", romaji: "bureul jipyeora", zh: "點燃心中的火焰 ", kongEr: "暴露 幾皮優拉", chant: null },
       { time: 18, original: "리리리 라라라", romaji: "RIRIRI LALALA", zh: "哩哩哩 啦啦啦", kongEr: "哩哩哩 啦啦啦", chant: null },
-      { time: 20.5, original: "정답은 묻지 말고 그대로 받아들여 느낌대로 가", romaji: "jeongdabeun mutji malgo geudaero badadeulyeo neukkimdaelo ga", zh: "不要問答案 就只要接受 跟著感覺走吧", kongEr: "重搭奔 姆幾 嘛勾 克代漏 吧搭德寮 呢吉米帶路", chant: null },
+      { time: 20.5, original: "정답은 묻지 말고 그대로 받아들여 느낌대로 가", romaji: "jeongdabeun mutji malgo geudaero badadeulyeo neukkimdaelo ga", zh: "不要問答案 就只要接受 跟著感覺走吧", kongEr: "重搭奔 姆幾 嘛勾 克代漏 吧", chant: null },
       { time: 29.2, original: "ALRIGHT", romaji: "", zh: "ALRIGHT", kongEr: "", chant: null },
       { time: 31.4, original: "하늘을 마주하고 두 손을 다 위로", romaji: "haneureul majuhago du soneul da wilo", zh: "對著天空 高舉起你的雙手", kongEr: "", chant: null },
       { time: 35.4, original: "저 위로 날뛰고 싶어 OH", romaji: "jeo wilo nalttwigo sipeo OH", zh: "想朝向那高處瘋狂亂跳 OH", kongEr: "", chant: null },
