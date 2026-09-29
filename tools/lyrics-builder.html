@@ -49,6 +49,15 @@
   .mark-bar { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
   .mark-bar .current-time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
 
+  #tap-mode-panel {
+    margin-top: 12px; padding: 16px; border: 2px dashed var(--accent); border-radius: 10px;
+    background: #fffbe8;
+  }
+  #tap-progress { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  #tap-current-text { font-size: 22px; font-weight: 700; line-height: 1.4; margin-bottom: 4px; }
+  #tap-current-zh { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+  #btn-tap-mark { font-size: 16px; padding: 14px 28px; }
+
   .quick-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   .quick-add-row input { flex: 1; min-width: 140px; }
   .quick-add-row button { flex-shrink: 0; }
@@ -166,7 +175,23 @@
   <div class="mark-bar">
     <button class="primary" id="btn-load-video">載入 / 更新影片</button>
     <span class="current-time" id="current-time-readout">目前播放時間：--</span>
+    <button id="btn-tap-start">⏱ 開始打拍對時（用下面列表目前的順序）</button>
   </div>
+  <div id="tap-mode-panel" hidden>
+    <div id="tap-progress"></div>
+    <div id="tap-current-text"></div>
+    <div id="tap-current-zh"></div>
+    <div class="toolbar">
+      <button class="primary" id="btn-tap-mark">⏱ 對時（空白鍵／Enter）</button>
+      <button id="btn-tap-undo">↩ 上一句重來</button>
+      <button class="danger" id="btn-tap-stop">✕ 結束打拍</button>
+    </div>
+  </div>
+  <p class="hint" style="margin-top:8px">
+    <b>打拍對時怎麼用：</b>先用上面「⓪ 選擇要修改的歌」或匯入把整首歌的歌詞文字都準備好（時間點先不管），
+    載入影片後按「開始打拍對時」，影片會自動播放，畫面會顯示下一句歌詞——<b>聽到那句唱出來的瞬間按一下空白鍵（或點對時按鈕）</b>，
+    系統就會記下當下秒數並自動跳下一句，一路按到底，比手動輸入秒數快很多。按錯可以「上一句重來」。
+  </p>
   <div class="quick-add-row">
     <input type="text" id="qa-original" placeholder="原文（邊聽邊打，打完按 Enter 或按右邊按鈕，直接連時間點一起新增）">
     <input type="text" id="qa-romaji" placeholder="羅馬拼音（選填，也可以之後再補）">
@@ -571,6 +596,62 @@
       if (ytPlayer) { ytPlayer.loadVideoById(id); return; }
       ytPlayer = new YT.Player("yt-player", { videoId: id, playerVars: { rel: 0 } });
     });
+  });
+
+  /* ===== 打拍對時模式：照目前列表順序，邊播影片邊按空白鍵，一句一句記下秒數 ===== */
+  let tapModeActive = false;
+  let tapIndex = 0;
+
+  function updateTapDisplay() {
+    if (tapIndex >= rows.length) {
+      document.getElementById("tap-progress").textContent = `共 ${rows.length} 句，全部對完了！`;
+      document.getElementById("tap-current-text").textContent = "🎉 完成";
+      document.getElementById("tap-current-zh").textContent = "可以按「結束打拍」，再到下面表格檢查一下秒數，接著產生程式碼、存檔。";
+      return;
+    }
+    const r = rows[tapIndex];
+    document.getElementById("tap-progress").textContent = `第 ${tapIndex + 1} / ${rows.length} 句`;
+    document.getElementById("tap-current-text").textContent = r.original || "（這句還沒打字，先看羅馬拼音/中文）";
+    document.getElementById("tap-current-zh").textContent = [r.romaji, r.zh].filter(Boolean).join("　|　");
+  }
+
+  function markTap() {
+    if (!tapModeActive || tapIndex >= rows.length) return;
+    const t = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+    rows[tapIndex].time = Math.round(t * 10) / 10;
+    tapIndex += 1;
+    renderRows();
+    updateTapDisplay();
+  }
+
+  function undoTap() {
+    if (tapIndex > 0) tapIndex -= 1;
+    updateTapDisplay();
+  }
+
+  document.getElementById("btn-tap-start").addEventListener("click", () => {
+    if (rows.length === 0) { alert("目前列表是空的，請先選一首歌匯入，或先新增幾句歌詞。"); return; }
+    if (!ytPlayer || !ytPlayer.getCurrentTime) { alert("請先填 YouTube 影片 ID 並按「載入 / 更新影片」。"); return; }
+    tapModeActive = true;
+    tapIndex = 0;
+    document.getElementById("tap-mode-panel").hidden = false;
+    updateTapDisplay();
+    try { ytPlayer.playVideo(); } catch (e) {}
+    document.getElementById("btn-tap-mark").focus();
+  });
+  document.getElementById("btn-tap-stop").addEventListener("click", () => {
+    tapModeActive = false;
+    document.getElementById("tap-mode-panel").hidden = true;
+  });
+  document.getElementById("btn-tap-mark").addEventListener("click", markTap);
+  document.getElementById("btn-tap-undo").addEventListener("click", undoTap);
+
+  window.addEventListener("keydown", (e) => {
+    if (!tapModeActive) return;
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); markTap(); }
+    else if (e.key === "Backspace") { e.preventDefault(); undoTap(); }
   });
 
   setInterval(() => {
