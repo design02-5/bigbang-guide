@@ -550,10 +550,10 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
   border-color: var(--text);
 }
 .lyric-line .chant-tag { margin-bottom: 4px; }
-.lyric-line .original { font-size: 18px; color: var(--text); }
-.lyric-line .romaji { font-size: 14px; color: var(--accent-strong); margin-top: 3px; }
-.lyric-line .zh { font-size: 16px; color: var(--text-muted); margin-top: 4px; }
-.lyric-line .kong-er { font-size: 14px; color: var(--text-muted); margin-top: 3px; }
+.lyric-line .original { font-size: 21px; line-height: 1.4; color: var(--text); }
+.lyric-line .romaji { font-size: 16px; color: var(--accent-strong); margin-top: 4px; }
+.lyric-line .zh { font-size: 18px; line-height: 1.4; color: var(--text-muted); margin-top: 5px; }
+.lyric-line .kong-er { font-size: 16px; color: var(--text-muted); margin-top: 4px; }
 .chant-mark.call { color: var(--chant-call); }
 .chant-mark.cheer { color: var(--chant-cheer); }
 .lyric-line.simple-mode .zh { display: none; }
@@ -759,6 +759,8 @@ table.info-table th { color: var(--text); background: var(--bg-elevated-2); }
     background: var(--bg);
     padding-bottom: 6px;
   }
+  /* 手機每一句都重複貼一個「大合唱／應援詞」標籤太佔空間，顏色本身就有區分了，手機版拿掉 */
+  .lyric-line .chant-tag { display: none; }
 }
 
 /* 歌詞捲動區隱藏捲軸（滑鼠滾輪/觸控還是能捲，只是不顯示軸） */
